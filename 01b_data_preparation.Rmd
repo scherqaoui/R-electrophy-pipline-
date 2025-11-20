@@ -1,17 +1,20 @@
 ---
-title: "012_data_smoothing"
+title: "data smoothing"
 output: html_document
 date: "2025-11-20"
 ---
 
 
 
-
-
-
 ```{r smoothing}
 
-source("01_data_preparation.Rmd")
+library(fda)
+library(fda.usc)
+library(fdANOVA)
+library(rmarkdown)
+
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
 Common_smoothing <- function(all_data_groups, Time) {
   # Combine all groups to get the global raw mean
@@ -85,4 +88,45 @@ Common_smoothing <- function(all_data_groups, Time) {
   
 }  
 ```
+
+
+
+```{r}
+
+
+#applying the common smoothing
+result_common <- Common_smoothing(all_groups, Time)
+
+
+#smooth functions
+
+all_fd_groups <- list(
+  malesWTjuv = result_common$fd_list$malesWTjuv,
+  malesHRMjuv = result_common$fd_list$malesHRMjuv,
+  femalesWTjuv = result_common$fd_list$femalesWTjuv,
+  femalesHRMjuv = result_common$fd_list$femalesHRMjuv,
+  
+  malesWTado = result_common$fd_list$malesWTado,
+  malesHRMado = result_common$fd_list$malesHRMado,
+  femalesWTado = result_common$fd_list$femalesWTado,
+  femalesHRMado = result_common$fd_list$femalesHRMado,
+  
+  malesWTadu = result_common$fd_list$malesWTadu,
+  malesHRMadu = result_common$fd_list$malesHRMadu,
+  femalesWTadu = result_common$fd_list$femalesWTadu
+)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
 

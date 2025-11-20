@@ -6,14 +6,16 @@ date: "2025-11-20"
 
 ```{r mean_variance}
 
-# Mean functions
-fd_groups <- list(
-  malesWTjuv = cleaned_results[[1]]$fd,
-  malesHRMjuv = cleaned_results[[2]]$fd,
-  femalesWTjuv = cleaned_results[[3]]$fd,
-  femalesHRMjuv = cleaned_results[[4]]$fd
-  # add remaining groups as needed
-)
+
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
+
+#fd list for each groupe
+
+fd_groups <- lapply(all_cleaned_groups, function(x) x$fd)
+
 
 grid <- seq(min(Time), max(Time), length.out = 200)
 mean_values_list <- lapply(fd_groups, function(fd_group) eval.fd(grid, mean.fd(fd_group)))

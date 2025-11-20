@@ -1,12 +1,13 @@
 ---
-title: "02_local_outlier_handling"
+title: "local outlier handling"
 output: html_document
 date: "2025-11-20"
 ---
 
 ```{r local_outliers}
-source("01_data_preparation.Rmd")
-source("012_data_preparation.Rmd")
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
 
 Local_outlier <- function(group_data, smooth_fd_object, Time, alpha = 0.05) {
@@ -69,6 +70,9 @@ cleaned_results <- lapply(all_groups, function(group) {
   Local_outlier(group, result_common, Time)
 })
 
+
+group_names <- names(all_groups)
+all_cleaned_groups <- setNames(cleaned_results, group_names)
 
 ```
 
