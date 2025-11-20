@@ -1,0 +1,32 @@
+---
+title: "03_global_outlier_detection"
+output: html_document
+date: "2025-11-20"
+---
+
+```{r global_outliers}
+
+Global_outliers <- function(fd_group, Time) {
+  
+  values_matrix <- eval.fd(Time, fd_group)
+  fdata_group <- fdata(values_matrix, argvals = Time)
+
+  out_FM <- depth.FM(fdata_group, trim = 0.1)
+  out_RT <- depth.RT(fdata_group, trim = 0.1)
+
+  # Outlier thresholds
+  seuil_FM <- quantile(out_FM$dep, probs = 0.1)
+  seuil_RT <- quantile(out_RT$dep, probs = 0.1)
+
+  # Outlier indices
+  outliers_FM <- which(out_FM$dep <= seuil_FM)
+  outliers_RT <- which(out_RT$dep <= seuil_RT)
+
+  # Combine both
+  outliers_final <- unique(c(outliers_FM, outliers_RT))
+
+  return(outliers_final)
+}
+
+```
+

@@ -1,0 +1,74 @@
+---
+title: "02_local_outlier_handling"
+output: html_document
+date: "2025-11-20"
+---
+
+```{r local_outliers}
+source("01_data_preparation.Rmd")
+source("012_data_preparation.Rmd")
+
+
+Local_outlier <- function(group_data, smooth_fd_object, Time, alpha = 0.05) {
+  group_data <- as.matrix(group_data)
+  group_data <- apply(group_data, 2, as.numeric)
+
+  # Shared basis and lambda
+  basis_obj <- smooth_fd_object$basis
+  lambda <- smooth_fd_object$lambda_opt
+  fdPar_group <- fdPar(basis_obj, Lfdobj = int2Lfd(2), lambda = lambda)
+
+  imputed_data <- group_data
+
+  nbasis <- basis_obj$nbasis
+  n <- length(Time)
+  df <- n - nbasis  # degrees of freedom for residuals
+
+  # Student-t quantile
+  t_quantile <- qt(1 - alpha / 2, df = max(df, 1))  # avoid df <= 0
+
+  for (i in seq_len(ncol(group_data))) {
+    # Step 1: Smooth the curve
+    fd_i <- smooth.basis(Time, group_data[, i], fdPar_group)$fd
+    predicted_i <- eval.fd(Time, fd_i)
+
+    # Step 2: Residuals and outlier detection
+    residuals <- group_data[, i] - predicted_i
+    sigma_hat <- sd(residuals, na.rm = TRUE)
+    threshold <- t_quantile * sigma_hat
+    outliers <- abs(residuals) > threshold
+
+    # Step 3: Re-smooth using only non-outlier points
+    filtered_idx <- which(!outliers)
+    if (length(filtered_idx) > 10) {
+      fd_clean <- smooth.basis(
+        argvals = Time[filtered_idx],
+        y = group_data[filtered_idx, i],
+        fdParobj = fdPar_group
+      )$fd
+
+      # Step 4: Impute the outlier values
+      imputed_values <- eval.fd(Time[outliers], fd_clean)
+      imputed_data[outliers, i] <- imputed_values
+    }
+  }
+
+  # Final smoothing on imputed data
+  final_fd <- smooth.basis(Time, imputed_data, fdPar_group)$fd
+
+  return(list(
+    fd = final_fd,
+    lambda = lambda,
+    basis = basis_obj,
+    imputed_data = imputed_data,
+    alpha = alpha
+  ))
+}
+
+cleaned_results <- lapply(all_groups, function(group) {
+  Local_outlier(group, result_common, Time)
+})
+
+
+```
+

@@ -1,0 +1,103 @@
+---
+title: "Amplitude Inference via Bootstrap SCB"
+output: html_document
+date: "2025-11-20"
+---
+
+```{r scb}
+
+source("04_mean_and_variance_functions.Rmd")
+
+
+set.seed(1234)
+Bootstrap_scb_difference <- function(fd_group1, fd_group2, n_bootstrap, Time) {
+  n1 <- dim(fd_group1$coefs)[2]
+  n2 <- dim(fd_group2$coefs)[2]
+
+  # Observed mean curves
+  mean_fd_group1 <- mean.fd(fd_group1)
+  mean_fd_group2 <- mean.fd(fd_group2)
+  mean_values_group1 <- eval.fd(Time, mean_fd_group1)
+  mean_values_group2 <- eval.fd(Time, mean_fd_group2)
+  diff_mean_values <- mean_values_group1 - mean_values_group2
+
+  # Helper to compute and smooth variance via FPCA
+  compute_variance_fd <- function(fd_group) {
+    pca_result <- pca.fd(fd_group, nharm = 2)
+    harmonics <- pca_result$harmonics
+    eigenvalues <- pca_result$values
+    harmvals <- eval.fd(Time, harmonics)
+    var_fpca <- rowSums((harmvals^2) %*% diag(eigenvalues[1:2]))
+
+    # Smooth the variance curve
+    result_common_var <- Common_smoothing(list(matrix(var_fpca, ncol = 1)), Time, constraint = "none")
+    eval.fd(Time, result_common_var$fd_list[[1]])
+  }
+
+  # Observed variance curves
+  var_obs_group1 <- compute_variance_fd(fd_group1)
+  var_obs_group2 <- compute_variance_fd(fd_group2)
+  diff_var_obs <- sqrt(var_obs_group1 + var_obs_group2)
+  
+  # Compute observed supremum statistic
+  Z_obs <- sqrt(n1 + n2) * diff_mean_values / diff_var_obs
+  T_obs <- max(abs(Z_obs))
+  
+
+  # Initialize bootstrap supremums
+  supremums <- numeric(n_bootstrap)
+
+  for (b in seq_len(n_bootstrap)) {
+    # 1) Resample smoothed curves with replacement
+    idx1 <- sample(seq_len(n1), size = n1, replace = TRUE)
+    idx2 <- sample(seq_len(n2), size = n2, replace = TRUE)
+    resampled_fd1 <- fd(fd_group1$coefs[, idx1], fd_group1$basis)
+    resampled_fd2 <- fd(fd_group2$coefs[, idx2], fd_group2$basis)
+
+    # 2) Recompute bootstrap mean curves
+    mean_fd1_b <- mean.fd(resampled_fd1)
+    mean_fd2_b <- mean.fd(resampled_fd2)
+    diff_mean_b <- eval.fd(Time, mean_fd1_b) - eval.fd(Time, mean_fd2_b)
+
+    # 3) Re-estimate variance on bootstrap sample
+    var_b_group1 <- compute_variance_fd(resampled_fd1)
+    var_b_group2 <- compute_variance_fd(resampled_fd2)
+    diff_var_b <- sqrt(var_b_group1 + var_b_group2)
+
+    # 4) Form bootstrap root: standardized difference process
+    Z_b <- sqrt(n1 + n2) * (diff_mean_b - diff_mean_values) / diff_var_b
+    
+    if (any(is.na(Z_b)) || any(is.infinite(Z_b))) {
+      next  # Skip this replicate
+    } else {
+    supremums[b] <- max(abs(Z_b))
+  }
+}
+  # Critical value for SCB (1 - alpha quantile)
+  z_alpha <- quantile(supremums, 0.95)
+  p_sup   <- (1 + sum(supremums >= T_obs)) / (n_bootstrap + 1)
+
+  # Construct SCB around observed mean difference
+  lower_bound <- diff_mean_values - (z_alpha * diff_var_obs) / sqrt(n1 + n2)
+  upper_bound <- diff_mean_values + (z_alpha * diff_var_obs) / sqrt(n1 + n2)
+  
+  # Effect size
+  effect_size_t <- diff_mean_values / diff_var_obs
+  d_max <- max(abs(effect_size_t))
+  d_mean <- mean(abs(effect_size_t))
+
+  return(list(lower = lower_bound,
+              upper = upper_bound,
+              mean = diff_mean_values,
+              sup_obs    = T_obs,
+              sup_dist   = supremums,
+              z_alpha    = z_alpha,
+              p_value    = p_sup,
+              d_t        = effect_size_t,
+              d_max      = d_max,
+              d_mean     = d_mean
+              ))
+}
+
+```
+

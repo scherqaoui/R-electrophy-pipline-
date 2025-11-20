@@ -1,0 +1,32 @@
+---
+title: "04_mean_and_variance_functions"
+output: html_document
+date: "2025-11-20"
+---
+
+```{r mean_variance}
+
+# Mean functions
+fd_groups <- list(
+  malesWTjuv = cleaned_results[[1]]$fd,
+  malesHRMjuv = cleaned_results[[2]]$fd,
+  femalesWTjuv = cleaned_results[[3]]$fd,
+  femalesHRMjuv = cleaned_results[[4]]$fd
+  # add remaining groups as needed
+)
+
+grid <- seq(min(Time), max(Time), length.out = 200)
+mean_values_list <- lapply(fd_groups, function(fd_group) eval.fd(grid, mean.fd(fd_group)))
+
+# Variance functions
+var_values_list <- list()
+for (i in seq_along(fd_groups)) {
+  cov_fd <- var.fd(fd_groups[[i]])
+  cov_mat <- eval.bifd(Time, Time, cov_fd)
+  var_values <- diag(cov_mat)
+  fdPar_var <- fdPar(result_common$basis, Lfdobj = 2, lambda = result_common$lambda_opt)
+  var_fd <- smooth.basis(Time, var_values, fdPar_var)$fd
+  var_values_list[[i]] <- eval.fd(Time, var_fd)
+}
+```
+
