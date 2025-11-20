@@ -1,0 +1,95 @@
+---
+title: "01_data_preparation"
+output: html_document
+date: "2025-11-20"
+---
+
+```{r setup, include=FALSE}
+
+library(fda)
+library(fda.usc)
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(fdANOVA)
+
+
+
+data_juv <- read_excel("C:/Users/bs/Desktop/salma/pipline/all data.xlsx", sheet = "juv")
+data_ado <- read_excel("C:/Users/bs/Desktop/salma/pipline/all data.xlsx", sheet = "ado")
+data_adu <- read_excel("C:/Users/bs/Desktop/salma/pipline/all data.xlsx", sheet = "adu")
+data_age <- read_excel("C:/Users/bs/Desktop/salma/pipline/all data.xlsx", sheet = "age")
+
+
+clean_data <- function(data, time_min, time_max, drop_cols) {
+  data <- data[, -drop_cols]
+  colnames(data) <- as.character(unlist(data[5, ]))
+  data <- data[-c(1:6), ]
+  colnames(data)[1] <- "Time"
+  data$Time <- as.numeric(data$Time)
+  data[-1] <- lapply(data[-1], as.numeric)
+  
+  data %>%
+    filter(Time >= time_min & Time <= time_max) %>%
+    filter(complete.cases(.))
+}
+
+
+
+cleaned_data_juv <- clean_data(data_juv, 10, 2400, c(1:4,6,15,26:32,43,44))
+cleaned_data_ado <- clean_data(data_ado, 10, 2390, c(1:4,16,23,26,37))
+cleaned_data_adu <- clean_data(data_adu, 10, 2390, c(1:4,6,11,17,20,28,29,36,38))
+cleaned_data_age <- clean_data(data_adu, 10, 2400, c())
+
+Time <- cleaned_data_juv$Time
+
+matrix_juv <- as.matrix(cleaned_data_juv[, -1]) 
+matrix_ado <- as.matrix(cleaned_data_ado[, -1]) 
+matrix_adu <- as.matrix(cleaned_data_adu[, -1]) 
+matrix_age <- as.matrix(cleaned_data_age[, -1])
+
+
+
+#-----------------------------Juvenile group-----------------------------------------
+
+malesWTjuv_gp <- matrix_juv[,  1:8]           #male
+malesHRMjuv_gp <- matrix_juv[, 9:18]          #male
+femalesWTjuv_gp <- matrix_juv[, 19:28]        #female
+femalesHRMjuv_gp <- matrix_juv[, 29:40]       #female
+
+#-----------------------------Adolescent group-----------------------------------------
+
+malesWTado_gp <- matrix_ado[, 1:10]            #male
+malesHRMado_gp <- matrix_ado[, 11:18]          #male
+femalesWTado_gp <- matrix_ado[, 19:28]         #female
+femalesHRMado_gp<- matrix_ado[, 29:37]         #female
+
+
+#-----------------------------Adult group-----------------------------------------
+
+malesWTadu_gp <- matrix_adu[,1:9]           #male
+malesHRMadu_gp <- matrix_adu[, 10:18]       #male
+femalesWTadu_gp <- matrix_adu[,19:25]        #female
+femalesHRMadu_gp <- matrix_adu[,]       #female
+
+#-----------------------------Aged group-----------------------------------------
+
+malesWTage_gp <- matrix_age[, ]            #male
+malesHRMage_gp <- matrix_age[, ]          #male
+femalesWTage_gp <- matrix_age[, ]         #female
+femalesHRMage_gp<- matrix_age[, ]         #female
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

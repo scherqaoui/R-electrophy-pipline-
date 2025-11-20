@@ -1,0 +1,88 @@
+---
+title: "012_data_smoothing"
+output: html_document
+date: "2025-11-20"
+---
+
+
+
+
+
+
+```{r smoothing}
+
+source("01_data_preparation.Rmd")
+
+Common_smoothing <- function(all_data_groups, Time) {
+  # Combine all groups to get the global raw mean
+  all_data_combined <- do.call(cbind, all_data_groups)
+  y_mean_global_raw <- rowMeans(all_data_combined, na.rm = TRUE)
+
+  # Temporary B-spline basis just to smooth y_mean_global_raw
+  nbasis_smooth <- 4
+  norder_smooth <- 4
+  basis_smooth <- create.bspline.basis(rangeval = range(Time), nbasis = nbasis_smooth, norder = norder_smooth)
+
+  #  lambda manually to avoid over-smoothing
+  lambda_opt_smooth <- 8
+  fdPar_obj_smooth <- fdPar(basis_smooth, Lfdobj = 2, lambda = lambda_opt_smooth)
+  smooth_global <- smooth.basis(Time, y_mean_global_raw, fdPar_obj_smooth)
+  y_mean_global <- eval.fd(Time, smooth_global$fd)
+
+  # Compute second derivative to guide knot placement
+  dy <- diff(y_mean_global) / diff(Time)
+  d2y <- diff(dy) / diff(Time[-1])
+  second_deriv <- c(d2y[1], d2y, tail(d2y, 1))
+  weight <- abs(second_deriv)
+  weight <- weight / sum(weight, na.rm = TRUE)
+
+  # Define knots using weighted quantiles
+  nbasis <- 12
+  norder <- 4
+  nbreaks <- nbasis - norder + 2
+  cum_weight <- cumsum(weight) / sum(weight)
+  quantiles <- seq(0, 1, length.out = nbreaks + 2)[-c(1, nbreaks + 2)]
+  break_indices <- sapply(quantiles, function(q) which.min(abs(cum_weight - q)))
+  nodes <- unique(c(min(Time), Time[break_indices], max(Time)))
+  grid <- seq(min(Time), max(Time), length.out = 200)
+
+  # Final common basis for all smoothing
+  basis <- create.bspline.basis(rangeval = range(grid), norder = norder, breaks = nodes)
+
+  # Global lambda selection (again) for actual smoothing of each curve
+  lambda_values <- 10^seq(-1, 3, length.out = 300)
+  gcv <- sapply(lambda_values, function(lambda) {
+    fdPar_obj <- fdPar(basis, Lfdobj = 2, lambda = lambda)
+    smooth <- smooth.basis(Time, y_mean_global, fdPar_obj)
+    mean(smooth$gcv, na.rm = TRUE)
+  })
+  lambda_opt <- lambda_values[which.min(gcv)]
+
+  # Smooth each curve in each group using common basis + common lambda
+  fd_group_list <- lapply(all_data_groups, function(data_group) {
+    coefs_list <- list()
+    for (i in 1:ncol(data_group)) {
+      fit_interp <- approx(Time, data_group[, i], xout = grid)$y
+      fdPar_obj <- fdPar(basis, Lfdobj = 2, lambda = lambda_opt)
+      smooth_fd <- smooth.basis(grid, fit_interp, fdPar_obj)$fd
+      coefs_list[[i]] <- smooth_fd$coefs
+    }
+    coefs_mat <- do.call(cbind, coefs_list)
+    fd_obj <- fd(coef = coefs_mat, basisobj = basis)
+    return(fd_obj)
+  })
+
+  # Return everything
+  return(list(
+    fd_list = fd_group_list,
+    lambda_opt = lambda_opt,
+    lambda_values = lambda_values,
+    gcv = gcv,
+    nodes = nodes,
+    basis = basis,
+    lambda_opt_smooth = lambda_opt_smooth
+  ))
+  
+}  
+```
+
