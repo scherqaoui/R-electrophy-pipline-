@@ -9,49 +9,37 @@ date: "2025-11-21"
 
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
-
-
 grid <- Time
 
 
-compute_mean_sem_raw <- function(raw_mat) {
-mean_curve <- rowMeans(raw_mat)
-sem_curve  <- apply(raw_mat, 1, sd) / sqrt(ncol(raw_mat))
-list(mean = mean_curve, sem = sem_curve)
-}
+all_vals <- unlist(lapply(all_groups, function(mat) {
+stats <- compute_mean_sem_raw(mat)
+c(stats$mean - stats$sem, stats$mean + stats$sem)
+}))
+ylim_global <- range(all_vals)
 
 
-plot_mean_sem_raw <- function(raw_mat, title_text, col_mean="blue", col_sem="lightblue") {
-stats <- compute_mean_sem_raw(raw_mat)
+for (i in seq_along(all_groups)) {
+stats <- compute_mean_sem_raw(all_groups[[i]])
 mean_curve <- stats$mean
 sem_curve  <- stats$sem
 
-ylim_range <- range(c(mean_curve - sem_curve, mean_curve + sem_curve))
 
-
-plot(grid, mean_curve, type="l", col=col_mean, lwd=2,
-ylim=ylim_range, main=title_text,
-xlab="Time (sec)", ylab="fEPSP (% baseline)")
+plot(grid, mean_curve, type="o", col=colors[i], lwd=2,
+ylim=ylim_global,
+xlab="Time (sec)", ylab="fEPSP (% baseline)",
+main=groups_names[i])
 
 
 polygon(c(grid, rev(grid)),
 c(mean_curve + sem_curve, rev(mean_curve - sem_curve)),
-col=col_sem, border=NA)
+col=adjustcolor(colors[i], alpha.f=0.3), border=NA)
 
 
-
-abline(h = 150, col = "black", lty=2, lwd=2)
+abline(h=150, col="black", lty=2, lwd=2)
 grid()
 }
 
-
-for (i in seq_along(all_groups)) {
-plot_mean_sem_raw(
-raw_mat = all_groups[[i]],
-title_text = groups_names[i],
-col_mean = colors[i],
-col_sem = adjustcolor(colors[i], alpha.f = 0.3)  
-}
 
 
 ```
