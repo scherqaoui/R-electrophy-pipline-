@@ -4,6 +4,7 @@ output: html_document
 date: "2025-11-20"
 ---
 
+
 ```{r kinetics}
 
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
@@ -11,15 +12,16 @@ rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
 
 
-all_derivs <- list()
-all_second_derivs <- list()
+all_1st_derivs <- list()
+all_2nd_derivs <- list()
 
 for (i in seq_along(fd_groups)) {
   mean_fd <- mean.fd(fd_groups[[i]])
   deriv_fd <- deriv.fd(mean_fd)
-  all_derivs[[i]] <- eval.fd(Time, deriv_fd)
-  all_second_derivs[[i]] <- eval.fd(Time, deriv.fd(deriv_fd))
+  all_1st_derivs[[i]] <- eval.fd(Time, deriv_fd)
+  all_2nd_derivs[[i]] <- eval.fd(Time, deriv.fd(deriv_fd))
 }
+
 
 ```
 

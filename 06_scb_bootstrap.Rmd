@@ -6,8 +6,6 @@ date: "2025-11-20"
 
 ```{r scb}
 
-source("04_mean_and_variance_functions.Rmd")
-
 
 set.seed(1234)
 Bootstrap_scb_difference <- function(fd_group1, fd_group2, n_bootstrap, Time) {

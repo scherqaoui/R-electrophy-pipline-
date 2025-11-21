@@ -12,7 +12,7 @@ rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
 
-#fd list for each groupe
+#fd list for each group
 fd_groups <- lapply(all_cleaned_fd_groups, function(x) x$fd)
 
 grid <- seq(min(Time), max(Time), length.out = 200)
