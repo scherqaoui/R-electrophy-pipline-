@@ -4,8 +4,10 @@ output: html_document
 date: "2025-11-20"
 ---
 
-```{r setup, include=FALSE}
 
+
+
+```{r}
 library(fda)
 library(fda.usc)
 library(readxl)
@@ -13,13 +15,10 @@ library(dplyr)
 library(tidyr)
 library(fdANOVA)
 
-
-
 data_juv <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "juv")
 data_ado <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "ado")
 data_adu <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "adu")
 #data_age <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "age")
-
 
 clean_data <- function(data, time_min, time_max, drop_cols) {
   data <- data[, -drop_cols]
@@ -34,24 +33,15 @@ clean_data <- function(data, time_min, time_max, drop_cols) {
     filter(complete.cases(.))
 }
 
-
-
 cleaned_data_juv <- clean_data(data_juv, 10, 2400, c(1:4,6,15,26:32,43,44))
 cleaned_data_ado <- clean_data(data_ado, 10, 2390, c(1:4,16,23,26,37))
 cleaned_data_adu <- clean_data(data_adu, 10, 2390, c(1:4,6,11,17,20,28,29,36,38))
-#cleaned_data_age <- clean_data(data_adu, 10, 2400, c())
 
 Time <- cleaned_data_juv$Time
 
 matrix_juv <- as.matrix(cleaned_data_juv[, -1]) 
 matrix_ado <- as.matrix(cleaned_data_ado[, -1]) 
 matrix_adu <- as.matrix(cleaned_data_adu[, -1]) 
-#matrix_age <- as.matrix(cleaned_data_age[, -1])
-
-
-
-#all discrete curves for each group are ready
-#raw matrices
 
 all_groups <- list(
   # Juvenile
@@ -70,14 +60,9 @@ all_groups <- list(
   malesWTadu    = matrix_adu[, 1:9],
   malesHRMadu   = matrix_adu[, 10:18],
   femalesWTadu  = matrix_adu[, 19:25]
-  #femalesHRMadu = matrix_adu[, ]
 )
-
-
-
-
-
 ```
+
 
 
 

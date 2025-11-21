@@ -71,8 +71,13 @@ cleaned_results <- lapply(all_groups, function(group) {
 })
 
 
-group_names <- names(all_groups)
-all_cleaned_groups <- setNames(cleaned_results, group_names)
+all_cleaned_fd_groups <- setNames(cleaned_results, group_names)
 
 ```
+
+
+
+
+
+
 

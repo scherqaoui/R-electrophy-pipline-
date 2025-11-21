@@ -1,0 +1,51 @@
+---
+title: "Smoothed Functional Data post local outliers"
+output: html_document
+date: "2025-11-21"
+---
+
+```{r}
+
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_plots_smoothed_fd.Rmd", envir = globalenv(), quiet = TRUE)
+
+
+plot_fd_comparison <- function(original_fd, cleaned_fd, Time, title_text,
+                               original_col = "gray50", cleaned_col = "blue") {
+  
+  grid <- seq(min(Time), max(Time), length.out = 200)
+  original_mat <- eval.fd(grid, original_fd)
+  cleaned_mat  <- eval.fd(grid, cleaned_fd$fd)
+
+  # plot original functional curves
+  matplot(grid, original_mat, type = "l", col = original_col, lty = 1, lwd = 2,
+          main = title_text, xlab = "Time (sec)", ylab = "fEPSP",
+          ylim = range(c(original_mat, cleaned_mat)))
+
+  # plot cleaned functional curves by local outlier
+  matlines(grid, cleaned_mat, col = cleaned_col, lty = 1, lwd = 1)
+
+  abline(h = 150, col = "black", lwd = 2, lty = 2)
+  grid()
+}
+
+
+
+for (i in seq_along(all_cleaned_fd_groups)) {
+  plot_fd_comparison(
+    original_fd = all_fd_groups[[i]],
+    cleaned_fd  = all_cleaned_fd_groups[[i]],
+    Time        = Time,
+    title_text  = groups_names[i]
+  )
+}
+
+```
+
+
+
+
+
+
