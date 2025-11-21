@@ -4,7 +4,7 @@ output: html_document
 date: "2025-11-21"
 ---
 
-```{r}
+```{r cleaned fd data}
 
 
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
@@ -38,7 +38,8 @@ for (i in seq_along(all_cleaned_fd_groups)) {
     original_fd = all_fd_groups[[i]],
     cleaned_fd  = all_cleaned_fd_groups[[i]],
     Time        = Time,
-    title_text  = groups_names[i]
+    title_text  = groups_names[i],
+    cleaned_col = colors[i]
   )
 }
 

@@ -6,7 +6,7 @@ date: "2025-11-20"
 
 
 
-```{r}
+```{r fd data}
 
 library(fda)
 library(fda.usc)
@@ -87,11 +87,6 @@ Common_smoothing <- function(all_data_groups, Time) {
   ))
   
 }  
-```
-
-
-
-```{r}
 
 
 #applying the common smoothing

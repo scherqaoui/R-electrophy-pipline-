@@ -4,7 +4,7 @@ output: html_document
 date: "2025-11-20"
 ---
 
-```{r local_outliers}
+```{r fd data post local outlier}
 
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)

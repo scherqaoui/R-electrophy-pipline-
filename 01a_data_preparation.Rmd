@@ -7,7 +7,7 @@ date: "2025-11-20"
 
 
 
-```{r}
+```{r raw data}
 library(fda)
 library(fda.usc)
 library(readxl)
@@ -61,6 +61,31 @@ all_groups <- list(
   malesHRMadu   = matrix_adu[, 10:18],
   femalesWTadu  = matrix_adu[, 19:25]
 )
+
+
+groups_names <- c(
+  "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",
+  "Males WT Adolescent","Males HRM Adolescent","Females WT Adolescent","Females HRM Adolescent","Males WT Adult","Males HRM Adult","Females WT Adult")
+
+
+
+colors <- c(
+  # Juvenile - BLUE family
+   "#00427A",  "#00427A",  "#4F8FD3",  "#4F8FD3",  
+
+  # Adolescent - ORANGE family
+   "yellow3", "yellow3",  "#DC5700",  "#DC5700",  
+
+  # Adult - GREEN family
+   "green3","green3","#1F7F1F"
+  
+)   
+
+
+lty <- c(1,2,1,2, 1,2,1,2, 1,2,1)
+
+
+
 ```
 
 

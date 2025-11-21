@@ -1,0 +1,64 @@
+---
+title: "raw discret data - group discrete curves"
+output: html_document
+date: "2025-11-21"
+---
+
+```{r plots raw data}
+
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+
+
+grid <- Time  
+
+# Function to compute mean (+ -) SEM from a raw matrix
+
+compute_mean_sem_raw <- function(raw_mat) {
+mean_curve <- rowMeans(raw_mat)
+sem_curve  <- apply(raw_mat, 1, sd) / sqrt(ncol(raw_mat))
+list(mean = mean_curve, sem = sem_curve)
+}
+
+# Plot mean (+ -) SEM for raw data
+
+plot_mean_sem_raw <- function(raw_mat, title_text, col_mean, col_sem) {
+stats <- compute_mean_sem_raw(raw_mat)
+mean_curve <- stats$mean
+sem_curve  <- stats$sem
+
+ylim_range <- range(c(mean_curve - sem_curve, mean_curve + sem_curve))
+
+# plot mean discrete curves
+
+lines(grid, mean_curve, type="l", col=col_mean, lwd=2,
+ylim=ylim_range,
+main=title_text, xlab="Time (sec)", ylab="fEPSP (% baseline)")
+
+# Add sem box arrows around the mean
+
+arrows(c(grid, rev(grid)),
+c(mean_curve + sem_curve, rev(mean_curve - sem_curve)),
+col=col_sem, border=NA)
+
+abline(h = 150, col = "black", lty=2, lwd=2)
+grid()
+}
+
+# Loop over all raw groups
+
+for (i in seq_along(all_groups)) {
+plot_mean_sem_raw(
+raw_mat = all_groups[[i]],
+title_text = groups_names[i],
+col_mean = colors[i],
+col_sem = colors[i]
+)
+}
+
+
+
+
+
+```
+
