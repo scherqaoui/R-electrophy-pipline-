@@ -11,12 +11,11 @@ rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
 grid <- Time
 
-
 all_vals <- unlist(lapply(all_groups, function(mat) {
 stats <- compute_mean_sem_raw(mat)
 c(stats$mean - stats$sem, stats$mean + stats$sem)
 }))
-ylim_global <- range(all_vals)
+ylim_global <- range(all_vals)   # <-- same scale
 
 
 for (i in seq_along(all_groups)) {
