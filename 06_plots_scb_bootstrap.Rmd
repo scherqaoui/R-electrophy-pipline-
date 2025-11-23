@@ -26,36 +26,36 @@ set.seed(1234)
 specific_comp <- list(
   
   #----- Geno comparisons: age fixed, sex fixed -----
-  c("malesHRMjuv", "malesWTjuv"),
-  c("femalesHRMjuv", "femalesWTjuv"),
+  c("Males HRM Juvenile", "Males WT Juvenile"),
+  c("Females HRM Juvenile", "Females WT Juvenile"),
   
-  c("malesHRMado", "malesWTado"),
-  c("femalesHRMado", "femalesWTado"),
+  c("Males HRM Adolescent", "Males WT Adolescent"),
+  c("Females HRM Adolescent", "Females WT Adolescent"),
   
-  c("malesHRMadu", "malesWTadu"),
-  c("femalesHRMadu", "femalesWTadu"),
+  c("Males HRM Adult", "Males WT Adult"),
+  c("Females HRM Adult", "Females WT Adult"),
 
   #----- Development comparisons: sex fixed, genotype fixed -----
 
   # Males — HRM
-  c("malesHRMjuv", "malesHRMado"),
-  c("malesHRMjuv", "malesHRMadu"),
-  c("malesHRMado", "malesHRMadu"),
+  c("Males HRM Juvenile", "Males HRM Adolescent"),
+  c("Males HRM Juvenile", "Males HRM Adult"),
+  c("Males HRM Adolescent", "Males HRM Adult"),
 
   # Males — WT
-  c("malesWTjuv", "malesWTado"),
-  c("malesWTjuv", "malesWTadu"),
-  c("malesWTado", "malesWTadu"),
+  c("Males WT Juvenile", "Males WT Adolescent"),
+  c("Males WT Juvenile", "Males WT Adult"),
+  c("Males WT Adolescent", "Males WT Adult"),
 
   # Females — HRM
-  c("femalesHRMjuv", "femalesHRMado"),
-  c("femalesHRMjuv", "femalesHRMadu"),
-  c("femalesHRMado", "femalesHRMadu"),
+  c("Females HRM Juvenile", "Females HRM Adolescent"),
+  c("Females HRM Juvenile", "Females HRM Adult"),
+  c("Females HRM Adolescent", "Females HRM Adult"),
 
   # Females — WT
-  c("femalesWTjuv", "femalesWTado"),
-  c("femalesWTjuv", "femalesWTadu"),
-  c("femalesWTado", "femalesWTadu")
+  c("Females WT Juvenile", "Females WT Adolescent"),
+  c("Females WT Juvenile", "Females WT Adult"),
+  c("Females WT Adolescent", "Females WT Adult")
 )
 
 ###############################################################
