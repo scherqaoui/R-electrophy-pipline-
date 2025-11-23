@@ -6,5 +6,138 @@ date: "2025-11-21"
 
 ```{r }
 
+###############################################################
+###  MODULE  — SCB Bootstrap Comparisons
+###  Goal: Compare selected groups using simultaneous confidence bands
+###############################################################
+
+# Rendering dependencies
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
+
+set.seed(1234)
+
+###############################################################
+### 1. Select manually the group comparisons of interest
+###    (flexible and avoids useless comparisons)
+###############################################################
+
+specific_comp <- list(
+  
+  #----- Geno comparisons: age fixed, sex fixed -----
+  c("malesHRMjuv", "malesWTjuv"),
+  c("femalesHRMjuv", "femalesWTjuv"),
+  
+  c("malesHRMado", "malesWTado"),
+  c("femalesHRMado", "femalesWTado"),
+  
+  c("malesHRMadu", "malesWTadu"),
+  c("femalesHRMadu", "femalesWTadu"),
+
+  #----- Development comparisons: sex fixed, genotype fixed -----
+
+  # Males — HRM
+  c("malesHRMjuv", "malesHRMado"),
+  c("malesHRMjuv", "malesHRMadu"),
+  c("malesHRMado", "malesHRMadu"),
+
+  # Males — WT
+  c("malesWTjuv", "malesWTado"),
+  c("malesWTjuv", "malesWTadu"),
+  c("malesWTado", "malesWTadu"),
+
+  # Females — HRM
+  c("femalesHRMjuv", "femalesHRMado"),
+  c("femalesHRMjuv", "femalesHRMadu"),
+  c("femalesHRMado", "femalesHRMadu"),
+
+  # Females — WT
+  c("femalesWTjuv", "femalesWTado"),
+  c("femalesWTjuv", "femalesWTadu"),
+  c("femalesWTado", "femalesWTadu")
+)
+
+###############################################################
+### 2. Compute SCBs for selected comparisons
+###############################################################
+
+scb_results <- setNames(
+  lapply(specific_comp, function(pair) {
+    group1 <- pair[1]
+    group2 <- pair[2]
+
+    cat("Computing SCB:", group1, "vs", group2, "\n")
+
+    Bootstrap_scb_difference(
+      fd_groups[[group1]],
+      fd_groups[[group2]],
+      n_bootstrap = 1000,
+      Time = Time
+    )
+  }),
+  sapply(specific_comp, function(pair) paste(pair, collapse = "_vs_"))
+)
+
+###############################################################
+### 3. Plotting function for SCBs (reused for each comparison)
+###############################################################
+
+plot_scb <- function(Time, scb, title) {
+  plot(Time, scb$mean, type = "l", col = "black", lwd = 2,
+       ylim = range(c(scb$lower, scb$upper)),
+       xlab = "Time (sec)", ylab = "fEPSP Diff.",
+       main = title, cex.main = 1.1)
+
+  lines(Time, scb$lower, col = "blue", lty = 2)
+  lines(Time, scb$upper, col = "blue", lty = 2)
+  abline(h = 0, col = "red", lty = 2)
+
+  polygon(c(Time, rev(Time)),
+          c(scb$lower, rev(scb$upper)),
+          col = rgb(0.5, 0.5, 0, 0.3), border = NA)
+
+  legend("bottomright",
+         legend = c("Mean Diff.", "95% SCB"),
+         col = c("black", "blue"),
+         lwd = c(2, 1), lty = c(1, 2),
+         cex = 0.7, bty = "n")
+}
+
+###############################################################
+### 4. Plot all SCBs
+###############################################################
+
+for (comparison in names(scb_results)) {
+  plot_scb(
+    Time,
+    scb_results[[comparison]],
+    gsub("_", " ", comparison)
+  )
+}
+
+###############################################################
+### 5. Summary statistics for README or Supplement
+###############################################################
+
+cat("\n===== SCB SUMMARY STATISTICS =====\n")
+
+for (comparison in names(scb_results)) {
+  res <- scb_results[[comparison]]
+  
+  cat("\nComparison:", gsub("_", " ", comparison), "\n")
+  cat("  p-value:        ", round(res$p_value, 4), "\n")
+  cat("  z_alpha:        ", round(res$z_alpha, 4), "\n")
+  cat("  sup_obs:        ", round(res$sup_obs, 4), "\n")
+  cat("  max|diff|:      ", round(max(abs(res$mean)), 4), "\n")
+  cat("  max|effect|:    ", round(res$d_max, 4), "\n")
+  cat("  mean|effect|:   ", round(res$d_mean, 4), "\n")
+}
+
+###############################################################
+### END MODULE
+###############################################################
+
+
 ```
 
