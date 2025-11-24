@@ -61,3 +61,14 @@ print(anova_table3)
 
 ```
 
+
+
+
+
+
+
+
+
+
+
+
