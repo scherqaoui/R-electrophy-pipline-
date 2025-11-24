@@ -13,14 +13,14 @@ grid <- seq(min(Time), max(Time), length.out = 200)
 ylim_mean <- range(unlist(mean_values_list))
 
 plot(grid, mean_values_list[[1]], type="n", ylim=ylim_mean,
-xlab="Time (sec)", ylab="fEPSP", main="Mean Curves for All Groups")
+xlab="Time (sec)", ylab="fEPSP % of baseline", main="Mean function curve")
 
 for (i in seq_along(mean_values_list)) {
 lines(grid, mean_values_list[[i]], col=colors[i], lty=lty[i], lwd=2)
 }
 
 grid()
-legend("topright", inset = c(-0.45, 0), xpd = TRUE, legend=groups_names, col=colors, lwd=2, bty="n", cex=0.8)
+legend("topright", inset = c(-0.45, 0), xpd = TRUE, legend=groups_names, col=colors,lty=lty, lwd=2, bty="n", cex=0.8)
 
 
 ```
@@ -41,14 +41,14 @@ var_values_list_aligned <- lapply(var_values_list, function(x) {
 ylim_var <- range(unlist(var_values_list_aligned), na.rm = TRUE)
 
 plot(grid, var_values_list_aligned[[1]], type="n", ylim=ylim_var,
-     xlab="Time (sec)", ylab="Variance", main="Variance Curves for All Groups")
+     xlab="Time (sec)", ylab="Variance", main="Variance function curve")
 
 for (i in seq_along(var_values_list_aligned)) {
-  lines(grid, var_values_list_aligned[[i]], col=colors[i], lwd=2)
+  lines(grid, var_values_list_aligned[[i]], col=colors[i],lty=lty[i], lwd=2)
 }
 
 grid()
-legend("topright",inset = c(-0.45, 0), xpd = TRUE, legend=groups_names, col=colors, lwd=2, bty="n", cex=0.8)
+legend("topright",inset = c(-0.45, 0), xpd = TRUE, legend=groups_names, col=colors,lty=lty, lwd=2, bty="n", cex=0.8)
 
 ```
 

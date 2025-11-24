@@ -1,0 +1,78 @@
+---
+title: "residual study : the empirical residual distribution."
+output: html_document
+date: "2025-11-24"
+---
+
+```{r residual study}
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+
+
+#-----------------------------------------------------
+# Function to compute residuals
+#-----------------------------------------------------
+compute_residuals <- function(original_group, fd_object, time_points) {
+  smoothed <- eval.fd(time_points, fd_object)
+  residuals <- original_group - smoothed
+  return(residuals)
+}
+
+#-----------------------------------------------------
+# Function: empirical rho estimation (AR(1) style)
+#-----------------------------------------------------
+estimer_rho_groupe <- function(residuals_matrix) {
+  rhos <- c()
+  for (i in 1:ncol(residuals_matrix)) {
+    x <- residuals_matrix[, i]
+    r <- acf(x, plot = FALSE)$acf[2]
+    rhos <- c(rhos, r)
+  }
+  return(mean(rhos, na.rm = TRUE))
+}
+
+#-----------------------------------------------------
+# Plotting residual diagnostics for each group
+#-----------------------------------------------------
+
+for (i in seq_along(groups_names)) {
+  
+  nom <- groups_names[i]
+  group_data <- all_groups[[i]]
+  fd_obj <- all_fd_groups[[i]]
+  
+  cat("--------------------------------------------------\n")
+  cat("Group:", nom, "\n")
+  cat("--------------------------------------------------\n\n")
+  
+  # Compute residuals
+  residus <- compute_residuals(group_data, fd_obj, Time)
+  
+  par(mfrow = c(2, 2))   # 4 plots per group
+  
+  # 1. Residual plot for first individual
+  plot(Time, residus[,1], type="l", main = paste("Residuals -", nom),
+       xlab = "Time (sec)", ylab = "Residuals")
+  
+  # 2. Histogram
+  hist(as.vector(residus), breaks = 30, col = "lightblue",
+       main = paste("Histogram -", nom), xlab = "Residuals")
+  
+  # 3. QQ-plot
+  qqnorm(as.vector(residus), main = paste("QQ-Plot -", nom))
+  qqline(as.vector(residus), col = "red")
+  
+  # 4. ACF plot (global)
+  acf_obj <- acf(as.vector(residus), plot = FALSE)
+  plot(acf_obj, main = paste("ACF -", nom))
+  
+  # Empirical rho
+  rho_HA <- estimer_rho_groupe(residus)
+  cat("Mean empirical rho for", nom, ": ", round(rho_HA, 4), "\n\n")
+}
+
+
+
+```
+

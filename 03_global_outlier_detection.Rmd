@@ -6,6 +6,12 @@ date: "2025-11-20"
 
 ```{r global_outliers}
 
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_plots_smoothed_fd.Rmd", envir = globalenv(), quiet = TRUE)
+
+
 Global_outliers <- function(fd_group, Time) {
   
   values_matrix <- eval.fd(Time, fd_group)
@@ -28,5 +34,26 @@ Global_outliers <- function(fd_group, Time) {
   return(outliers_final)
 }
 
+depth_results <- lapply(all_fd_groups, function(group) {
+  Global_outliers(group, Time)
+})
+
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

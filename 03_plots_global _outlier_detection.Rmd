@@ -1,0 +1,56 @@
+---
+title: "plots global outlier detection"
+output: html_document
+date: "2025-11-24"
+---
+
+```{r plots global outlier}
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_plots_smoothed_fd.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("03_global_outlier_detection.Rmd", envir = globalenv(), quiet = TRUE)
+
+set.seed(1234)
+
+
+plot_detect_outliers <- function(fd_group, outliers_group, title, depth_col) {
+  print(paste("Outliers for ", title, ":", outliers_group))  # indices
+  
+  matplot(Time,eval.fd(Time, fd_group), type = "l",lwd=2, col = "darkgray",
+          main = title, xlab = "Time (sec)", ylab = "fESPS",
+          ylim = range(eval.fd(Time, fd_group)))
+
+  if (length(outliers_group) > 0) {
+    matlines(Time,eval.fd(Time, fd_group)[, outliers_group], type = "l", col = depth_col)
+  }
+
+  #legend("topleft", legend = c("non outlier", "Outlier"),col = c("darkgray", "red"), lty = 1, lwd = c(1, 1),cex = 0.8,bty = "n")
+}
+
+for (i in seq_along(depth_results)) {
+  plot_detect_outliers(
+    fd_group = all_fd_groups[[i]],
+    outliers_group  = depth_results[[i]],
+    title  = groups_names[i],
+    depth_col = colors[i]
+  )
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
