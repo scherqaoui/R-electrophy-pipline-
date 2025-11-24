@@ -10,6 +10,7 @@ date: "2025-11-21"
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_plots_smoothed_fd.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
 
 
 plot_fd_comparison <- function(original_fd, cleaned_fd, Time, title_text,
