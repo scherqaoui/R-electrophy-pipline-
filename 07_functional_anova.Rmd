@@ -6,6 +6,8 @@ date: "2025-11-24"
 
 ```{r fanova}
 
+rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
 
 #-------------------------------------------------------------------------------
 #----------- three-way functional ANOVA (on basis coefficients) ---------------

@@ -6,8 +6,15 @@ date: "2025-11-24"
 
 ```{r setup, include=FALSE}
 
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("07_functional_anova.Rmd", envir = globalenv(), quiet = TRUE)
 
 set.seed(1234)
+
+
 #---------------------- USAGE EXAMPLE ----------------------#
 # Suppose having n functional observations (each in fd_groups[[i]]).  we define:
 
@@ -19,13 +26,11 @@ geno <- c("WT","HRM","WT","HRM",
 
 age  <- c("juv","juv","juv","juv",
           "ado","ado","ado","ado", 
-          "adu", "adu","adu", "adu"
-          )
+          "adu", "adu","adu", "adu")
 
 sexe <- c("M","M","F","F",
           "M","M","F","F",
-          "M","M","F","F"
-         )
+          "M","M","F","F")
 
 # Runing the 3-way functional ANOVA (with 2 000 permutations):
 res3 <- fanova3_FP(fd_groups, geno, age, sexe, P = 2000)
