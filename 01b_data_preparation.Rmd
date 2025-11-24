@@ -89,11 +89,11 @@ Common_smoothing <- function(all_data_groups, Time) {
 }  
 
 
-#applying the common smoothing
+# applying the common smoothing
 result_common <- Common_smoothing(all_groups, Time)
 
 
-#smooth functions
+# A named list of fd objects, one per group
 all_fd_groups <- setNames(result_common$fd_list, groups_names)
 
 

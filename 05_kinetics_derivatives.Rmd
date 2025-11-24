@@ -18,6 +18,7 @@ all_2nd_derivs <- list()
 for (i in seq_along(fd_groups)) {
   mean_fd <- mean.fd(fd_groups[[i]])
   deriv_fd <- deriv.fd(mean_fd)
+  
   all_1st_derivs[[i]] <- eval.fd(Time, deriv_fd)
   all_2nd_derivs[[i]] <- eval.fd(Time, deriv.fd(deriv_fd))
 }

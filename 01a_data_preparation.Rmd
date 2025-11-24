@@ -15,11 +15,13 @@ library(dplyr)
 library(tidyr)
 library(fdANOVA)
 
+#Raw electrophysiology Excel sheets
 data_juv <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "juv")
 data_ado <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "ado")
 data_adu <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "adu")
-#data_age <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "age")
 
+
+#Removes unused rows/columns
 clean_data <- function(data, time_min, time_max, drop_cols) {
   data <- data[, -drop_cols]
   colnames(data) <- as.character(unlist(data[5, ]))
@@ -33,6 +35,7 @@ clean_data <- function(data, time_min, time_max, drop_cols) {
     filter(complete.cases(.))
 }
 
+
 cleaned_data_juv <- clean_data(data_juv, 10, 2400, c(1:4,6,15,26:32,43,44))
 cleaned_data_ado <- clean_data(data_ado, 10, 2390, c(1:4,16,23,26,37))
 cleaned_data_adu <- clean_data(data_adu, 10, 2390, c(1:4,6,11,17,20,28,29,36,38,39,43))
@@ -42,6 +45,9 @@ Time <- cleaned_data_juv$Time
 matrix_juv <- as.matrix(cleaned_data_juv[, -1]) 
 matrix_ado <- as.matrix(cleaned_data_ado[, -1]) 
 matrix_adu <- as.matrix(cleaned_data_adu[, -1]) 
+
+
+#Splits each dataset into biologically meaningful subgroups
 
 all_groups <- list(
   # Juvenile
@@ -65,6 +71,8 @@ all_groups <- list(
 )
 
 
+#Metadata
+
 groups_names <- c(
   "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",
   "Males WT Adolescent","Males HRM Adolescent","Females WT Adolescent","Females HRM Adolescent","Males WT Adult","Males HRM Adult","Females WT Adult", "Females HRM Adult")
@@ -72,13 +80,11 @@ groups_names <- c(
 
 
 colors <- c(
-  # Juvenile - BLUE family
-   "#00427A",  "#00427A",  "#4F8FD3",  "#4F8FD3",  
-
-  # Adolescent - ORANGE family
-   "yellow3", "yellow3",  "#DC5700",  "#DC5700",  
-
-  # Adult - GREEN family
+    # Juvenile 
+   "#00427A","#00427A","#4F8FD3","#4F8FD3",  
+    # Adolescent 
+   "yellow3", "yellow3","#DC5700","#DC5700",  
+    # Adult 
    "green3","green3","#1F7F1F","#1F7F1F"
   
 )   

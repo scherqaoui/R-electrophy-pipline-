@@ -9,19 +9,21 @@ date: "2025-11-21"
 
 rmarkdown::render("05_kinetics_derivatives.Rmd", envir = globalenv(), quiet = TRUE)
 
-ymin <- min(sapply(all_derivs, min))
-ymax <- max(sapply(all_derivs, max))
+legends <- groups_names
+
+ymin <- min(sapply(all_1st_derivs, min))
+ymax <- max(sapply(all_1st_derivs, max))
 
 
 for (i in seq_along(fd_groups)) {
   plot(
     Time, all_1st_derivs[[i]], type = "l", col = colors[i], lwd = 3, lty = lty[i],
-    xlab = "Time (sec)", ylab = "(fEPSP)'",
+    xlab = "Time (sec)", ylab = "(fEPSP % baseline)'",
     main = paste("First Derivative -", legends[i]),
     ylim = c(ymin, ymax)   # <-- same scale
   )
   
-  abline(h = 0, col = "red", lty = 2)
+  abline(h = 0, col = "red", lty = 1)
   grid()
 }
 
@@ -43,8 +45,8 @@ ymax <- max(sapply(all_2nd_derivs, max))
 
 for (i in seq_along(fd_groups)) {
   plot(
-    Time, all_second_derivs[[i]], type = "l", col = colors[i], lwd = 3, lty = lty[i],
-    xlab = "Time (sec)", ylab = "(fEPSP)'' ",
+    Time, all_2nd_derivs[[i]], type = "l", col = colors[i], lwd = 3, lty = lty[i],
+    xlab = "Time (sec)", ylab = "(fEPSP % baseline)'' ",
     main = paste("First Derivative -", legends[i]),
     ylim = c(ymin, ymax)   # <-- same scale
   )

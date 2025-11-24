@@ -21,7 +21,7 @@ plot_fd_comparison <- function(original_fd, cleaned_fd, Time, title_text,
 
   # plot original functional curves
   matplot(grid, original_mat, type = "l", col = original_col, lty = 1, lwd = 2,
-          main = title_text, xlab = "Time (sec)", ylab = "fEPSP",
+          main = title_text, xlab = "Time (sec)", ylab = "fEPSP % of baseline",
           ylim = range(c(original_mat, cleaned_mat)))
 
   # plot cleaned functional curves by local outlier
