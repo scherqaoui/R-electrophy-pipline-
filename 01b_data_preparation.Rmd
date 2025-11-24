@@ -94,7 +94,6 @@ result_common <- Common_smoothing(all_groups, Time)
 
 
 #smooth functions
-
 all_fd_groups <- setNames(result_common$fd_list, groups_names)
 
 
