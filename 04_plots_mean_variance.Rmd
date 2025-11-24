@@ -16,7 +16,7 @@ plot(grid, mean_values_list[[1]], type="n", ylim=ylim_mean,
 xlab="Time (sec)", ylab="fEPSP", main="Mean Curves for All Groups")
 
 for (i in seq_along(mean_values_list)) {
-lines(grid, mean_values_list[[i]], col=colors[i], lwd=2)
+lines(grid, mean_values_list[[i]], col=colors[i], lty=lty[i], lwd=2)
 }
 
 grid()
