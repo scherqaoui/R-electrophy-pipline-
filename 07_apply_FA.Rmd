@@ -4,7 +4,7 @@ output: html_document
 date: "2025-11-24"
 ---
 
-```{r setup, include=FALSE}
+```{r apply fanova}
 
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
@@ -15,14 +15,11 @@ rmarkdown::render("07_functional_anova.Rmd", envir = globalenv(), quiet = TRUE)
 set.seed(1234)
 
 
-#---------------------- USAGE EXAMPLE ----------------------#
 # Suppose having n functional observations (each in fd_groups[[i]]).  we define:
 
 geno <- c("WT","HRM","WT","HRM", 
           "WT","HRM","WT","HRM",
           "WT","HRM","WT","HRM")
-
-
 
 age  <- c("juv","juv","juv","juv",
           "ado","ado","ado","ado", 
@@ -41,7 +38,7 @@ pvals      <- res3$pvalue
 dfs        <- res3$df
 eta2       <- res3$effect_size_eta
 
-# Building a small ANOVA table:
+# A small ANOVA table:
 anova_table3 <- data.frame(
   Factor      = c("geno","age","sexe","geno:age","geno:sexe","age:sexe","geno:age:sexe"),
   F_stat      = c(fstats["FG"],    fstats["FA"],    fstats["FS"],

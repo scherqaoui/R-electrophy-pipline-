@@ -7,36 +7,65 @@ date: "2025-11-21"
 ```{r plots raw data}
 
 
+
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
-grid <- Time
+#Function to compute mean & SEM (raw data)
 
-all_vals <- unlist(lapply(all_groups, function(mat) {
-stats <- compute_mean_sem_raw(mat)
-c(stats$mean - stats$sem, stats$mean + stats$sem)
-}))
-ylim_global <- range(all_vals)   # <-- same scale
+compute_mean_sem_raw <- function(mat) {
+  mean_curve <- apply(mat, 1, mean, na.rm = TRUE)
+  
+  sem_curve <- apply(mat, 1, function(x) {
+    sd(x, na.rm = TRUE) / sqrt(sum(!is.na(x)))
+  })
+  
+  list(mean = mean_curve, sem = sem_curve)
+}
+
+
+# Compute global Y-limits for all groups (same scale)
+
+
+grid <- Time  # X-axis vector
+
+all_vals <- unlist(
+  lapply(all_groups, function(mat) {
+    stats <- compute_mean_sem_raw(mat)
+    c(stats$mean - stats$sem, stats$mean + stats$sem)
+  })
+)
+
+ylim_global <- range(all_vals)
+
+
+# Plot mean ± SEM for all groups
 
 
 for (i in seq_along(all_groups)) {
-stats <- compute_mean_sem_raw(all_groups[[i]])
-mean_curve <- stats$mean
-sem_curve  <- stats$sem
-
-
-plot(grid, mean_curve, type="o", col=colors[i], lwd=2,
-ylim=ylim_global,
-xlab="Time (sec)", ylab="fEPSP (% baseline)",
-main=groups_names[i])
-
-
-polygon(c(grid, rev(grid)),
-c(mean_curve + sem_curve, rev(mean_curve - sem_curve)),
-col=adjustcolor(colors[i], alpha.f=0.3), border=NA)
-
-
-abline(h=150, col="black", lty=2, lwd=2)
-grid()
+  
+  stats <- compute_mean_sem_raw(all_groups[[i]])
+  
+  mean_curve <- stats$mean
+  sem_curve  <- stats$sem
+  
+  plot(grid, mean_curve,
+       type="o", col=colors[i], lwd=2,
+       ylim = ylim_global,
+       xlab = "Time (sec)", ylab = "fEPSP (% baseline)",
+       main = groups_names[i])
+  
+  # SEM ribbon
+  polygon(
+    c(grid, rev(grid)),
+    c(mean_curve + sem_curve, rev(mean_curve - sem_curve)),
+    col = adjustcolor(colors[i], alpha.f = 0.3),
+    border = NA
+  )
+  
+  
+  abline(h = 150, col = "black", lty = 2, lwd = 2)
+  
+  grid()
 }
 
 
