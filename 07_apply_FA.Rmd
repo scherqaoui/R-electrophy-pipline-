@@ -1,0 +1,61 @@
+---
+title: "apply fanova"
+output: html_document
+date: "2025-11-24"
+---
+
+```{r setup, include=FALSE}
+
+
+set.seed(1234)
+#---------------------- USAGE EXAMPLE ----------------------#
+# Suppose having n functional observations (each in fd_groups[[i]]).  we define:
+
+geno <- c("WT","HRM","WT","HRM", 
+          "WT","HRM","WT","HRM",
+          "WT","HRM","WT","HRM")
+
+
+
+age  <- c("juv","juv","juv","juv",
+          "ado","ado","ado","ado", 
+          "adu", "adu","adu", "adu"
+          )
+
+sexe <- c("M","M","F","F",
+          "M","M","F","F",
+          "M","M","F","F"
+         )
+
+# Runing the 3-way functional ANOVA (with 2 000 permutations):
+res3 <- fanova3_FP(fd_groups, geno, age, sexe, P = 2000)
+
+# Extracting results:
+fstats     <- res3$stat       # FG, FA, FS, FAG, FGS, FAS, FGAS
+pvals      <- res3$pvalue
+dfs        <- res3$df
+eta2       <- res3$effect_size_eta
+
+# Building a small ANOVA table:
+anova_table3 <- data.frame(
+  Factor      = c("geno","age","sexe","geno:age","geno:sexe","age:sexe","geno:age:sexe"),
+  F_stat      = c(fstats["FG"],    fstats["FA"],    fstats["FS"],
+                  fstats["FAG"],   fstats["FGS"],   fstats["FAS"],
+                  fstats["FGAS"]),
+  p_value     = c(pvals["pG"],     pvals["pA"],     pvals["pS"],
+                  pvals["pAG"],    pvals["pGS"],    pvals["pAS"],
+                  pvals["pGAS"]),
+  df_numer    = c(dfs["dfG"],      dfs["dfA"],      dfs["dfS"],
+                  dfs["dfAG"],     dfs["dfGS"],     dfs["dfAS"],
+                  dfs["dfGAS"]),
+  #df_denom    = rep(dfs["dfE"], 7),
+  eta2_effect = c(eta2["eta2_G"],  eta2["eta2_A"],  eta2["eta2_S"],
+                  eta2["eta2_AG"], eta2["eta2_GS"], eta2["eta2_AS"],
+                  eta2["eta2_GAS"])
+)
+
+print(anova_table3)
+
+
+```
+

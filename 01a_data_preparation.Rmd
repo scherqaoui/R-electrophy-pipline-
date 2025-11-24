@@ -79,12 +79,12 @@ colors <- c(
    "yellow3", "yellow3",  "#DC5700",  "#DC5700",  
 
   # Adult - GREEN family
-   "green3","green3","#1F7F1F"
+   "green3","green3","#1F7F1F","#1F7F1F"
   
 )   
 
 
-lty <- c(1,2,1,2, 1,2,1,2, 1,2,1)
+lty <- c(1,2,1,2, 1,2,1,2, 1,2,1,2)
 
 
 

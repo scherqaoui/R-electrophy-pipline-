@@ -1,0 +1,252 @@
+---
+title: "factors effects via Fanova"
+output: html_document
+date: "2025-11-24"
+---
+
+```{r fanova}
+
+
+#-------------------------------------------------------------------------------
+#----------- three-way functional ANOVA (on basis coefficients) ---------------
+#-----------         with permutation-based p-values                     -------
+#-------------------------------------------------------------------------------
+
+fanova3_FP <- function(fd_list, factorG, factorA, factorS, P = 1000, parallel = FALSE) {
+  # fd_list:   a list of 'fd' objects (each has a $coefs matrix of size K?n_i)
+  # factorG:   a factor (length = length(fd_list)) giving the "G" level of each group
+  # factorA:   a factor (length = length(fd_list)) giving the "A" level of each group
+  # factorS:   a factor (length = length(fd_list)) giving the "S" level of each group
+  # P:         number of permutations to run (default = 1000)
+  # parallel:  (not used here, but included for consistency with your two-way code)
+  
+  # 1) Input checks and coefficient extraction
+  stopifnot(length(fd_list) == length(factorG),
+            length(factorG) == length(factorA),
+            length(factorA) == length(factorS))
+  
+  # Extract each fd_i's coefficient matrix (K ? n_i), then build one big (K ? N) matrix
+  coefs_list <- lapply(fd_list, function(fdi) fdi$coefs)  
+  ns         <- sapply(coefs_list, ncol)   # ns[i] = number of columns in coefs_list[[i]]
+  coef_mat   <- do.call(cbind, coefs_list) # K ? N  (columns of each group bound side by side)
+  coefs_NK   <- t(coef_mat)                # N ? K  (each row = one ?replicate?'s K-vector of basis-coefs)
+  
+  # 2) Build the ?full-length? factor vectors of length N
+  G_all <- factor(rep(factorG, times = ns))
+  A_all <- factor(rep(factorA, times = ns))
+  S_all <- factor(rep(factorS, times = ns))
+  
+  # 3) A helper function to compute SS, F, and df for all seven effects
+  compute_stats3 <- function(coefs, G, A, S) {
+    # coefs: N ? K matrix
+    # G, A, S: each is a factor of length N
+    N    <- nrow(coefs)
+    levG <- levels(G); g <- length(levG)
+    levA <- levels(A); a <- length(levA)
+    levS <- levels(S); s <- length(levS)
+    
+    # 3.1) Grand mean (length K)
+    mu0 <- colMeans(coefs)  # a K-vector
+    
+    # 3.2) Main-effect means (each is ?levels ? K?)
+    muG <- t(sapply(levG, function(l) colMeans(coefs[G == l, , drop = FALSE])))
+    muA <- t(sapply(levA, function(l) colMeans(coefs[A == l, , drop = FALSE])))
+    muS <- t(sapply(levS, function(l) colMeans(coefs[S == l, , drop = FALSE])))
+    
+    # 3.3) Two-way interaction means (each array has dimension [levels1, levels2, K])
+    muGA <- array(0, dim = c(g, a, ncol(coefs)))
+    for (i in seq_len(g)) {
+      for (j in seq_len(a)) {
+        sel <- which(G == levG[i] & A == levA[j])
+        if (length(sel) > 0) {
+          muGA[i, j, ] <- colMeans(coefs[sel, , drop = FALSE])
+        }
+      }
+    }
+    
+    muGS <- array(0, dim = c(g, s, ncol(coefs)))
+    for (i in seq_len(g)) {
+      for (k in seq_len(s)) {
+        sel <- which(G == levG[i] & S == levS[k])
+        if (length(sel) > 0) {
+          muGS[i, k, ] <- colMeans(coefs[sel, , drop = FALSE])
+        }
+      }
+    }
+    
+    muAS <- array(0, dim = c(a, s, ncol(coefs)))
+    for (j in seq_len(a)) {
+      for (k in seq_len(s)) {
+        sel <- which(A == levA[j] & S == levS[k])
+        if (length(sel) > 0) {
+          muAS[j, k, ] <- colMeans(coefs[sel, , drop = FALSE])
+        }
+      }
+    }
+    
+    # 3.4) Three-way interaction mean [g ? a ? s ? K]
+    muGAS <- array(0, dim = c(g, a, s, ncol(coefs)))
+    for (i in seq_len(g)) {
+      for (j in seq_len(a)) {
+        for (k in seq_len(s)) {
+          sel <- which(G == levG[i] & A == levA[j] & S == levS[k])
+          if (length(sel) > 0) {
+            muGAS[i, j, k, ] <- colMeans(coefs[sel, , drop = FALSE])
+          }
+        }
+      }
+    }
+    
+    # 4) Compute sums-of-squares (as scalars) for each effect
+    SSG <- sum(sapply(seq_len(g), function(i) {
+      ni <- sum(G == levG[i])
+      sum((muG[i, ] - mu0)^2) * ni
+    }))
+    SSA <- sum(sapply(seq_len(a), function(j) {
+      nj <- sum(A == levA[j])
+      sum((muA[j, ] - mu0)^2) * nj
+    }))
+    SSS <- sum(sapply(seq_len(s), function(k) {
+      nk <- sum(S == levS[k])
+      sum((muS[k, ] - mu0)^2) * nk
+    }))
+    
+    SSAG <- sum(sapply(seq_len(g), function(i) {
+      sapply(seq_len(a), function(j) {
+        nij <- sum(G == levG[i] & A == levA[j])
+        sum((muGA[i, j, ] - muG[i, ] - muA[j, ] + mu0)^2) * nij
+      })
+    }))
+    
+    SSGS <- sum(sapply(seq_len(g), function(i) {
+      sapply(seq_len(s), function(k) {
+        nig <- sum(G == levG[i] & S == levS[k])
+        sum((muGS[i, k, ] - muG[i, ] - muS[k, ] + mu0)^2) * nig
+      })
+    }))
+    
+    SSAS <- sum(sapply(seq_len(a), function(j) {
+      sapply(seq_len(s), function(k) {
+        naj <- sum(A == levA[j] & S == levS[k])
+        sum((muAS[j, k, ] - muA[j, ] - muS[k, ] + mu0)^2) * naj
+      })
+    }))
+    
+    SSGAS <- sum(sapply(seq_len(g), function(i) {
+      sapply(seq_len(a), function(j) {
+        sapply(seq_len(s), function(k) {
+          nijk <- sum(G == levG[i] & A == levA[j] & S == levS[k])
+          delta <- muGAS[i, j, k, ] -
+                   muGA[i, j, ]   - muGS[i, k, ]   - muAS[j, k, ] +
+                   muG[i, ]       + muA[j, ]       + muS[k, ]   -
+                   mu0
+          sum(delta^2) * nijk
+        })
+      })
+    }))
+    
+    # 5) Fit-and-residual (same pattern as 2-way code)
+    fitted <- matrix(0, nrow = N, ncol = ncol(coefs))
+    for (n in seq_len(N)) {
+      i <- which(levG == G[n])
+      j <- which(levA == A[n])
+      k <- which(levS == S[n])
+      fitted[n, ] <- muGAS[i, j, k, ]
+    }
+    residuals <- coefs - fitted
+    SSE <- sum(residuals^2)
+    
+    # 6) Degrees of freedom
+    dfG   <- g - 1
+    dfA   <- a - 1
+    dfS   <- s - 1
+    dfAG  <- dfG * dfA
+    dfGS  <- dfG * dfS
+    dfAS  <- dfA * dfS
+    dfGAS <- dfG * dfA * dfS
+    dfE   <- N - (g * a * s)
+    
+    # 7) Mean squares and F-statistics
+    MSE   <- SSE / dfE
+    FG    <- (SSG  / dfG)   / MSE
+    FA    <- (SSA  / dfA)   / MSE
+    FS    <- (SSS  / dfS)   / MSE
+    FAG   <- (SSAG / dfAG)  / MSE
+    FGS   <- (SSGS / dfGS)  / MSE
+    FAS   <- (SSAS / dfAS)  / MSE
+    FGAS  <- (SSGAS / dfGAS) / MSE
+    
+    list(
+      SSG   = SSG,
+      SSA   = SSA,
+      SSS   = SSS,
+      SSAG  = SSAG,
+      SSGS  = SSGS,
+      SSAS  = SSAS,
+      SSGAS = SSGAS,
+      SSE   = SSE,
+      FF    = c(FG = FG, FA = FA, FS = FS, FAG = FAG, FGS = FGS, FAS = FAS, FGAS = FGAS),
+      df    = c(dfG = dfG, dfA = dfA, dfS = dfS, dfAG = dfAG, dfGS = dfGS, dfAS = dfAS, dfGAS = dfGAS, dfE = dfE)
+    )
+  }
+  
+  # 4) Observe the ?true? statistics on the original grouping
+  obs <- compute_stats3(coefs_NK, G_all, A_all, S_all)
+  
+  # 5) Compute effect-sizes ??? for each effect
+  SST <- obs$SSG + obs$SSA + obs$SSS + obs$SSAG + obs$SSGS + obs$SSAS + obs$SSGAS + obs$SSE
+  eta2_G   <- obs$SSG   / SST
+  eta2_A   <- obs$SSA   / SST
+  eta2_S   <- obs$SSS   / SST
+  eta2_AG  <- obs$SSAG  / SST
+  eta2_GS  <- obs$SSGS  / SST
+  eta2_AS  <- obs$SSAS  / SST
+  eta2_GAS <- obs$SSGAS / SST
+  
+  # 6) Permutation loop to build null distributions for each F-statistic
+  permF_G   <- numeric(P)
+  permF_A   <- numeric(P)
+  permF_S   <- numeric(P)
+  permF_AG  <- numeric(P)
+  permF_GS  <- numeric(P)
+  permF_AS  <- numeric(P)
+  permF_GAS <- numeric(P)
+  
+  for (p in seq_len(P)) {
+    permG <- sample(G_all)
+    permA <- sample(A_all)
+    permS <- sample(S_all)
+    
+    st <- compute_stats3(coefs_NK, permG, permA, permS)$FF
+    permF_G[p]   <- st["FG"]
+    permF_A[p]   <- st["FA"]
+    permF_S[p]   <- st["FS"]
+    permF_AG[p]  <- st["FAG"]
+    permF_GS[p]  <- st["FGS"]
+    permF_AS[p]  <- st["FAS"]
+    permF_GAS[p] <- st["FGAS"]
+  }
+  
+  # 7) Permutation-based p-values
+  pG   <- (1 + sum(permF_G   >= obs$FF["FG"]))   / (P + 1)
+  pA   <- (1 + sum(permF_A   >= obs$FF["FA"]))   / (P + 1)
+  pS   <- (1 + sum(permF_S   >= obs$FF["FS"]))   / (P + 1)
+  pAG  <- (1 + sum(permF_AG  >= obs$FF["FAG"]))  / (P + 1)
+  pGS  <- (1 + sum(permF_GS  >= obs$FF["FGS"]))  / (P + 1)
+  pAS  <- (1 + sum(permF_AS  >= obs$FF["FAS"]))  / (P + 1)
+  pGAS <- (1 + sum(permF_GAS >= obs$FF["FGAS"])) / (P + 1)
+  
+  # 8) Return a list of observed stats, dfs, p-values, permutations, and ???
+  list(
+    stat            = obs$FF,
+    df              = obs$df,
+    pvalue          = c(pG = pG, pA = pA, pS = pS, pAG = pAG, pGS = pGS, pAS = pAS, pGAS = pGAS),
+    perm            = list(FG = permF_G, FA = permF_A, FS = permF_S,
+                           FAG = permF_AG, FGS = permF_GS, FAS = permF_AS, FGAS = permF_GAS),
+    effect_size_eta = c(eta2_G = eta2_G, eta2_A = eta2_A, eta2_S = eta2_S,
+                        eta2_AG = eta2_AG, eta2_GS = eta2_GS, eta2_AS = eta2_AS, eta2_GAS = eta2_GAS)
+  )
+}
+
+```
+
