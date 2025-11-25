@@ -4,98 +4,116 @@ output: html_document
 date: "2025-11-20"
 ---
 
-```{r scb}
+```{r scb comparaison}
 
-
-set.seed(1234)
 Bootstrap_scb_difference <- function(fd_group1, fd_group2, n_bootstrap, Time) {
+  
   n1 <- dim(fd_group1$coefs)[2]
   n2 <- dim(fd_group2$coefs)[2]
 
-  # Observed mean curves
-  mean_fd_group1 <- mean.fd(fd_group1)
-  mean_fd_group2 <- mean.fd(fd_group2)
-  mean_values_group1 <- eval.fd(Time, mean_fd_group1)
-  mean_values_group2 <- eval.fd(Time, mean_fd_group2)
-  diff_mean_values <- mean_values_group1 - mean_values_group2
+  # --- 1. Observed mean curves ---
+  mean_fd1 <- mean.fd(fd_group1)
+  mean_fd2 <- mean.fd(fd_group2)
+  mean1 <- eval.fd(Time, mean_fd1)
+  mean2 <- eval.fd(Time, mean_fd2)
+  
+  diff_mean <- mean1 - mean2
 
-  # Helper to compute and smooth variance via FPCA
+
+  # --- 2. Variance estimator via FPCA ---
   compute_variance_fd <- function(fd_group) {
-    pca_result <- pca.fd(fd_group, nharm = 2)
-    harmonics <- pca_result$harmonics
-    eigenvalues <- pca_result$values
-    harmvals <- eval.fd(Time, harmonics)
-    var_fpca <- rowSums((harmvals^2) %*% diag(eigenvalues[1:2]))
-
-    # Smooth the variance curve
-    result_common_var <- Common_smoothing(list(matrix(var_fpca, ncol = 1)), Time, constraint = "none")
-    eval.fd(Time, result_common_var$fd_list[[1]])
+    pca_res <- pca.fd(fd_group, nharm = 2)
+    harm <- eval.fd(Time, pca_res$harmonics)
+    eig  <- pca_res$values[1:2]
+    
+    var_fpca <- rowSums((harm^2) %*% diag(eig))
+    
+    # Smooth variance
+    sm_var <- Common_smoothing(list(matrix(var_fpca, ncol = 1)), Time)
+    eval.fd(Time, sm_var$fd_list[[1]])
   }
-
-  # Observed variance curves
-  var_obs_group1 <- compute_variance_fd(fd_group1)
-  var_obs_group2 <- compute_variance_fd(fd_group2)
-  diff_var_obs <- sqrt(var_obs_group1 + var_obs_group2)
   
-  # Compute observed supremum statistic
-  Z_obs <- sqrt(n1 + n2) * diff_mean_values / diff_var_obs
+  # observed variance curves
+  var1 <- compute_variance_fd(fd_group1)
+  var2 <- compute_variance_fd(fd_group2)
+  var_sum <- sqrt(var1 + var2)
+
+
+  # --- 3. Observed test statistic (supremum) ---
+  Z_obs <- sqrt(n1 + n2) * diff_mean / var_sum
   T_obs <- max(abs(Z_obs))
-  
 
-  # Initialize bootstrap supremums
+
+  # --- 4. Bootstrap distribution ---
   supremums <- numeric(n_bootstrap)
 
   for (b in seq_len(n_bootstrap)) {
-    # 1) Resample smoothed curves with replacement
-    idx1 <- sample(seq_len(n1), size = n1, replace = TRUE)
-    idx2 <- sample(seq_len(n2), size = n2, replace = TRUE)
-    resampled_fd1 <- fd(fd_group1$coefs[, idx1], fd_group1$basis)
-    resampled_fd2 <- fd(fd_group2$coefs[, idx2], fd_group2$basis)
-
-    # 2) Recompute bootstrap mean curves
-    mean_fd1_b <- mean.fd(resampled_fd1)
-    mean_fd2_b <- mean.fd(resampled_fd2)
-    diff_mean_b <- eval.fd(Time, mean_fd1_b) - eval.fd(Time, mean_fd2_b)
-
-    # 3) Re-estimate variance on bootstrap sample
-    var_b_group1 <- compute_variance_fd(resampled_fd1)
-    var_b_group2 <- compute_variance_fd(resampled_fd2)
-    diff_var_b <- sqrt(var_b_group1 + var_b_group2)
-
-    # 4) Form bootstrap root: standardized difference process
-    Z_b <- sqrt(n1 + n2) * (diff_mean_b - diff_mean_values) / diff_var_b
     
-    if (any(is.na(Z_b)) || any(is.infinite(Z_b))) {
-      next  # Skip this replicate
-    } else {
-    supremums[b] <- max(abs(Z_b))
+    # Resample curves with replacement
+    idx1 <- sample(seq_len(n1), n1, replace = TRUE)
+    idx2 <- sample(seq_len(n2), n2, replace = TRUE)
+    
+    fd1_b <- fd(fd_group1$coefs[, idx1], fd_group1$basis)
+    fd2_b <- fd(fd_group2$coefs[, idx2], fd_group2$basis)
+
+    # Recompute Bootstrap means
+    mean1_b <- eval.fd(Time, mean.fd(fd1_b))
+    mean2_b <- eval.fd(Time, mean.fd(fd2_b))
+    diff_b  <- mean1_b - mean2_b
+    
+    # Re-estimate Bootstrap variance
+    var1_b <- compute_variance_fd(fd1_b)
+    var2_b <- compute_variance_fd(fd2_b)
+    var_b  <- sqrt(var1_b + var2_b)
+
+    # Bootstrap root process
+    Z_b <- sqrt(n1 + n2) * (diff_b - diff_mean) / var_b
+    
+    if (!any(is.na(Z_b)) && !any(is.infinite(Z_b))) {
+      supremums[b] <- max(abs(Z_b))
+    }
   }
-}
-  # Critical value for SCB (1 - alpha quantile)
+
+
+  # --- 5. Crtical value for SCB ---
   z_alpha <- quantile(supremums, 0.95)
-  p_sup   <- (1 + sum(supremums >= T_obs)) / (n_bootstrap + 1)
-
-  # Construct SCB around observed mean difference
-  lower_bound <- diff_mean_values - (z_alpha * diff_var_obs) / sqrt(n1 + n2)
-  upper_bound <- diff_mean_values + (z_alpha * diff_var_obs) / sqrt(n1 + n2)
   
-  # Effect size
-  effect_size_t <- diff_mean_values / diff_var_obs
-  d_max <- max(abs(effect_size_t))
-  d_mean <- mean(abs(effect_size_t))
+  lower <- diff_mean - (z_alpha * var_sum) / sqrt(n1 + n2)  #lower band 
+  upper <- diff_mean + (z_alpha * var_sum) / sqrt(n1 + n2)  #upper band
 
-  return(list(lower = lower_bound,
-              upper = upper_bound,
-              mean = diff_mean_values,
-              sup_obs    = T_obs,
-              sup_dist   = supremums,
-              z_alpha    = z_alpha,
-              p_value    = p_sup,
-              d_t        = effect_size_t,
-              d_max      = d_max,
-              d_mean     = d_mean
-              ))
+
+  # --- 6. Functional Cohen's d(t) ---
+  d_t <- diff_mean / var_sum
+  d_max  <- max(abs(d_t))
+  d_mean <- mean(abs(d_t))
+  
+  
+  # ---6a. Compute Cohen's d curve
+
+  sd_pooled <- sqrt((var1 + var2) / 2)
+
+  d_curve <- (mean1 - mean2) / sd_pooled
+
+  
+
+
+  # --- 7. Return all results ---
+  return(list(
+    mean = diff_mean,
+    lower = lower,
+    upper = upper,
+    
+    sup_obs = T_obs,
+    sup_dist = supremums,
+    z_alpha = z_alpha,
+    p_value = (1 + sum(supremums >= T_obs)) / (n_bootstrap + 1),
+    
+    d_curve = d_curve,
+    d_t = d_t,
+    d_max = d_max,
+    d_mean = d_mean
+  ))
 }
-
 ```
+
 

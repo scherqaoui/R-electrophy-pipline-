@@ -15,6 +15,8 @@ date: "2025-11-21"
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("06_scb_bootstrap.Rmd", envir = globalenv(), quiet = TRUE)
 
 set.seed(1234)
 
@@ -26,36 +28,36 @@ set.seed(1234)
 specific_comp <- list(
   
   #----- Geno comparisons: age fixed, sex fixed -----
-  c("Males HRM Juvenile", "Males WT Juvenile"),
-  c("Females HRM Juvenile", "Females WT Juvenile"),
+  #c("Males HRM Juvenile", "Males WT Juvenile")
+  #c("Females HRM Juvenile", "Females WT Juvenile"),
   
-  c("Males HRM Adolescent", "Males WT Adolescent"),
-  c("Females HRM Adolescent", "Females WT Adolescent"),
+  #c("Males HRM Adolescent", "Males WT Adolescent")
+  #c("Females HRM Adolescent", "Females WT Adolescent"),
   
-  c("Males HRM Adult", "Males WT Adult"),
-  c("Females HRM Adult", "Females WT Adult"),
+  #c("Males HRM Adult", "Males WT Adult"),
+  #c("Females HRM Adult", "Females WT Adult"),
 
   #----- Development comparisons: sex fixed, genotype fixed -----
 
   # Males — HRM
-  c("Males HRM Juvenile", "Males HRM Adolescent"),
-  c("Males HRM Juvenile", "Males HRM Adult"),
-  c("Males HRM Adolescent", "Males HRM Adult"),
+  #c("Males HRM Juvenile", "Males HRM Adolescent"),
+  c("Males HRM Juvenile", "Males HRM Adult")
+  #c("Males HRM Adolescent", "Males HRM Adult"),
 
   # Males — WT
-  c("Males WT Juvenile", "Males WT Adolescent"),
-  c("Males WT Juvenile", "Males WT Adult"),
-  c("Males WT Adolescent", "Males WT Adult"),
+  #c("Males WT Juvenile", "Males WT Adolescent"),
+  #c("Males WT Juvenile", "Males WT Adult"),
+  #c("Males WT Adolescent", "Males WT Adult"),
 
   # Females — HRM
-  c("Females HRM Juvenile", "Females HRM Adolescent"),
-  c("Females HRM Juvenile", "Females HRM Adult"),
-  c("Females HRM Adolescent", "Females HRM Adult"),
+  #c("Females HRM Juvenile", "Females HRM Adolescent"),
+  #c("Females HRM Juvenile", "Females HRM Adult"),
+  #c("Females HRM Adolescent", "Females HRM Adult"),
 
   # Females — WT
-  c("Females WT Juvenile", "Females WT Adolescent"),
-  c("Females WT Juvenile", "Females WT Adult"),
-  c("Females WT Adolescent", "Females WT Adult")
+  #c("Females WT Juvenile", "Females WT Adolescent"),
+  #c("Females WT Juvenile", "Females WT Adult"),
+  #c("Females WT Adolescent", "Females WT Adult")
 )
 
 ###############################################################
@@ -104,8 +106,43 @@ plot_scb <- function(Time, scb, title) {
          cex = 0.7, bty = "n")
 }
 
+
+
 ###############################################################
-### 4. Plot all SCBs
+### 4. Plotting function for cohen's (reused for each comparison)
+###############################################################
+
+plot_cohen_d <- function(Time, d_curve, title) {
+  plot(Time, d_curve, type = "l", lwd = 2, col = "purple",
+       xlab = "Time (sec)", ylab = "Cohen's d(t)",
+       main = paste("Cohen's d(t) -", title))
+  abline(h = 0, col = "red", lty = 2)
+  abline(h = c(0.2, 0.5, 0.8), col = "gray", lty = 3)
+  legend("topright",
+         legend = c("d(t)", "0.2 small", "0.5 medium", "0.8 large"),
+         col = c("purple", "gray", "gray", "gray"),
+         lty = c(1, 3, 3, 3),
+         cex = 0.7, bty = "n")
+}
+
+
+
+###############################################################
+### 5. Plot all cohen's d
+###############################################################
+
+
+for (comparison in names(scb_results)) {
+  plot_cohen_d(
+    Time,
+    scb_results[[comparison]]$d_curve,
+    gsub("_", " ", comparison)
+  )
+}
+
+
+###############################################################
+### 5. Plot all SCBs
 ###############################################################
 
 for (comparison in names(scb_results)) {
@@ -129,15 +166,29 @@ for (comparison in names(scb_results)) {
   cat("  p-value:        ", round(res$p_value, 4), "\n")
   cat("  z_alpha:        ", round(res$z_alpha, 4), "\n")
   cat("  sup_obs:        ", round(res$sup_obs, 4), "\n")
-  cat("  max|diff|:      ", round(max(abs(res$mean)), 4), "\n")
-  cat("  max|effect|:    ", round(res$d_max, 4), "\n")
-  cat("  mean|effect|:   ", round(res$d_mean, 4), "\n")
+  cat("  mean(cohen's d):   ", round(res$d_mean, 4), "\n")
 }
-
-###############################################################
-### END MODULE
-###############################################################
 
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
