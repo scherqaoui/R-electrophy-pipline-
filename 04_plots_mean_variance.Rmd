@@ -8,31 +8,48 @@ date: "2025-11-21"
 
 rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
 
+
+if (!dir.exists("figures_mu_curve")) dir.create("figures_mu_curve")
+
+png("figures_mu_curve/mean_function_curves.png",
+    width = 1500, height = 1000, res = 150)
+
+
 par(mar = c(5, 4, 4, 10))  
 grid <- seq(min(Time), max(Time), length.out = 200)
 ylim_mean <- range(unlist(mean_values_list))
 
+
 plot(grid, mean_values_list[[1]], type="n", ylim=ylim_mean,
 xlab="Time (sec)", ylab="fEPSP % of baseline", main="Mean function curve")
+
 
 for (i in seq_along(mean_values_list)) {
 lines(grid, mean_values_list[[i]], col=colors[i], lty=lty[i], lwd=2)
 }
 
 grid()
-legend("topright", inset = c(-0.45, 0), xpd = TRUE, legend=groups_names, col=colors,lty=lty, lwd=2, bty="n", cex=0.8)
+legend("topright", inset = c(-0.27, 0), xpd = TRUE, legend=groups_names, col=colors,lty=lty, lwd=2, bty="n", cex=0.8)
 
-
+dev.off()
 ```
+
 
 
 
 
 ```{r variance curves}
 
-par(mar = c(5, 4, 4, 10))
 
 rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
+
+if (!dir.exists("figures_var_curve")) dir.create("figures_var_curve")
+
+png("figures_var_curve/var_function_curves.png",
+    width = 1500, height = 1000, res = 150)
+
+
+par(mar = c(5, 4, 4, 10))
 
 var_values_list_aligned <- lapply(var_values_list, function(x) {
   approx(x = seq_along(x), y = x, xout = seq_len(length(grid)))$y
@@ -48,7 +65,9 @@ for (i in seq_along(var_values_list_aligned)) {
 }
 
 grid()
-legend("topright",inset = c(-0.45, 0), xpd = TRUE, legend=groups_names, col=colors,lty=lty, lwd=2, bty="n", cex=0.8)
+legend("topright",inset = c(-0.27, 0), xpd = TRUE, legend=groups_names, col=colors,lty=lty, lwd=2, bty="n", cex=0.8)
+
+dev.off()
 
 ```
 
