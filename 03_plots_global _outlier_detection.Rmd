@@ -28,13 +28,22 @@ plot_detect_outliers <- function(fd_group, outliers_group, title, depth_col) {
   #legend("topleft", legend = c("non outlier", "Outlier"),col = c("darkgray", "red"), lty = 1, lwd = c(1, 1),cex = 0.8,bty = "n")
 }
 
+
+if (!dir.exists("figures_detect_outlier_curves")) dir.create("figures_detect_outlier_curves")
+
 for (i in seq_along(depth_results)) {
+  file_name <- paste0("figures_detect_outlier_curves/", groups_names[i], ".png")
+  
+  png(filename = file_name, width = 1200, height = 800, res = 150)
+  
   plot_detect_outliers(
     fd_group = all_fd_groups[[i]],
     outliers_group  = depth_results[[i]],
     title  = groups_names[i],
     depth_col = colors[i]
   )
+  
+  dev.off()
 }
 
 ```
