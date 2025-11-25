@@ -10,7 +10,7 @@ Bootstrap_scb_difference <- function(fd_group1, fd_group2, n_bootstrap, Time) {
   
   n1 <- dim(fd_group1$coefs)[2]
   n2 <- dim(fd_group2$coefs)[2]
-
+ 
   # --- 1. Observed mean curves ---
   mean_fd1 <- mean.fd(fd_group1)
   mean_fd2 <- mean.fd(fd_group2)
