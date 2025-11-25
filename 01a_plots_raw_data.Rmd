@@ -7,8 +7,9 @@ date: "2025-11-21"
 ```{r plots raw data}
 
 
-
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+
+
 
 #Function to compute mean & SEM (raw data)
 
@@ -40,6 +41,7 @@ ylim_global <- range(all_vals)
 
 # Plot mean ± SEM for all groups
 
+if(!dir.exists("figures")) dir.create("figures")
 
 for (i in seq_along(all_groups)) {
   
@@ -47,6 +49,12 @@ for (i in seq_along(all_groups)) {
   
   mean_curve <- stats$mean
   sem_curve  <- stats$sem
+  
+  # output file name 
+  file_name <- paste0("figures/", groups_names[i], ".png")
+  
+  
+  png(filename = file_name, width = 1200, height = 800, res = 150)
   
   plot(grid, mean_curve,
        type="o", col=colors[i], lwd=2,
@@ -66,11 +74,15 @@ for (i in seq_along(all_groups)) {
   abline(h = 150, col = "black", lty = 2, lwd = 2)
   
   grid()
+  
+  
+  dev.off()
 }
 
 
 
 ```
+
 
 
 
