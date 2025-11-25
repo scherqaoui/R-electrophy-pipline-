@@ -32,9 +32,14 @@ plot_fd_comparison <- function(original_fd, cleaned_fd, Time, title_text,
   grid()
 }
 
-
+if (!dir.exists("figures_cleaned_data")) dir.create("figures_cleaned_data")
 
 for (i in seq_along(all_cleaned_fd_groups)) {
+  
+  file_name <- paste0("figures_cleaned_data/", groups_names[i], ".png")
+  
+  png(filename = file_name, width = 1200, height = 800, res = 150)
+  
   plot_fd_comparison(
     original_fd = all_fd_groups[[i]],
     cleaned_fd  = all_cleaned_fd_groups[[i]],
@@ -42,6 +47,8 @@ for (i in seq_along(all_cleaned_fd_groups)) {
     title_text  = groups_names[i],
     cleaned_col = colors[i]
   )
+  
+  dev.off()
 }
 
 ```
