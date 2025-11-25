@@ -115,7 +115,6 @@ Bootstrap_scb_difference <- function(fd_group1, fd_group2, n_bootstrap, Time) {
   ))
 }
 
-
 ```
 
 
