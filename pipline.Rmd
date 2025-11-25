@@ -11,7 +11,7 @@ date: "2025-04-29"
 
 
 
-## data preparation
+## data preparation     
 
 ```{r}
 library(fda)
@@ -983,7 +983,7 @@ for (group_name in names(cov_list)) {
 
 
 ## Variance function curves
-+ plotting seperatly for males and females
+
 
 ```{r}
 
