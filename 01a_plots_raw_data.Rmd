@@ -41,7 +41,7 @@ ylim_global <- range(all_vals)
 
 # Plot mean ± SEM for all groups
 
-if(!dir.exists("figures")) dir.create("figures")
+if(!dir.exists("figures_raw_data")) dir.create("figures_raw_data")
 
 for (i in seq_along(all_groups)) {
   
@@ -51,7 +51,7 @@ for (i in seq_along(all_groups)) {
   sem_curve  <- stats$sem
   
   # output file name 
-  file_name <- paste0("figures/", groups_names[i], ".png")
+  file_name <- paste0("figures_raw_data/", groups_names[i], ".png")
   
   
   png(filename = file_name, width = 1200, height = 800, res = 150)

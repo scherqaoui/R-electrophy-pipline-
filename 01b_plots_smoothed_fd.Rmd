@@ -40,9 +40,14 @@ plot_gp_curves <- function(fd_gp, title_gp, col, lty,
   }
 }
 
-
+if (!dir.exists("figures_smooth_data")) dir.create("figures_smooth_data")
 
 for (i in 1:length(all_fd_groups)) {
+  
+  file_name <- paste0("figures_smooth_data/", groups_names[i], ".png")
+  
+  png(filename = file_name, width = 1200, height = 800, res = 150)
+  
   plot_gp_curves(
     fd_gp = all_fd_groups[[i]],
     title_gp = groups_names[i],
@@ -54,6 +59,8 @@ for (i in 1:length(all_fd_groups)) {
   )
   abline(h = 150, col = "black", lwd = 2, lty = 2)
   grid()
+  
+  dev.off()
 }
 
 ```
