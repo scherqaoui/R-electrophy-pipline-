@@ -1,7 +1,7 @@
 ---
 title: "Amplitude Inference via Bootstrap SCB"
 output: html_document
-date: "2025-11-20"
+date: "2025-11-25"
 ---
 
 ```{r scb comparaison}
@@ -114,6 +114,7 @@ Bootstrap_scb_difference <- function(fd_group1, fd_group2, n_bootstrap, Time) {
     d_mean = d_mean
   ))
 }
+
 
 ```
 
