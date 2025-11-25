@@ -169,7 +169,7 @@ for (comparison in names(scb_results)) {
   cat("  mean(cohen's d):   ", round(res$d_mean, 4), "\n")
 }
 
-
+#end
 ```
 
 
