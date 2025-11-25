@@ -73,6 +73,7 @@ cleaned_results <- lapply(all_groups, function(group) {
 # A named list of cleaned fd curves for all groups 
 all_cleaned_fd_groups <- setNames(cleaned_results, groups_names)
 
+
 ```
 
 
