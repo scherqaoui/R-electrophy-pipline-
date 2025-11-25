@@ -21,6 +21,7 @@ data_ado <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx"
 data_adu <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "adu")
 
 
+
 #Removes unused rows/columns
 clean_data <- function(data, time_min, time_max, drop_cols) {
   data <- data[, -drop_cols]
