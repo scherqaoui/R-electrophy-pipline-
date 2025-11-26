@@ -130,14 +130,21 @@ plot_cohen_d <- function(Time, d_curve, title) {
 ###############################################################
 ### 5. Plot all cohen's d
 ###############################################################
+if (!dir.exists("figures_scb_comparaison")) dir.create("figures_scb_comparaison")
 
 
 for (comparison in names(scb_results)) {
+  
+  file_name <- paste0("figures_scb_comparaison/", groups_names[i], ".png")
+  
+  png(filename = file_name, width = 1200, height = 800, res = 150)
+  
   plot_cohen_d(
     Time,
     scb_results[[comparison]]$d_curve,
     gsub("_", " ", comparison)
   )
+  dev.off()
 }
 
 
@@ -145,12 +152,21 @@ for (comparison in names(scb_results)) {
 ### 5. Plot all SCBs
 ###############################################################
 
+
+if (!dir.exists("figures_cohen_d")) dir.create("figures_cohen_d")
+
+
 for (comparison in names(scb_results)) {
+  file_name <- paste0("figures_cohen_d/", groups_names[i], ".png")
+  
+  png(filename = file_name, width = 1200, height = 800, res = 150)
   plot_scb(
     Time,
     scb_results[[comparison]],
     gsub("_", " ", comparison)
   )
+  
+  dev.off()
 }
 
 ###############################################################
@@ -169,7 +185,16 @@ for (comparison in names(scb_results)) {
   cat("  mean(cohen's d):   ", round(res$d_mean, 4), "\n")
 }
 
-#end
+
+if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
+
+library(gridExtra)
+
+png("SCB_summary_stat/_scb_summary_stat.png", width = 1600, height = 600, res = 150)
+grid.table(anova_table3)
+dev.off()
+
+
 ```
 
 
