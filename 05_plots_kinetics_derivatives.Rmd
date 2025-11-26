@@ -14,8 +14,14 @@ legends <- groups_names
 ymin <- min(sapply(all_1st_derivs, min))
 ymax <- max(sapply(all_1st_derivs, max))
 
+if (!dir.exists("figures_1st_derivatives")) dir.create("figures_1st_derivatives")
 
 for (i in seq_along(fd_groups)) {
+  
+  file_name <- paste0("figures_1st_derivatives/1st_derivative_", legends[i], ".png")
+  png(file_name, width = 1400, height = 900, res = 150)
+  
+  
   plot(
     Time, all_1st_derivs[[i]], type = "l", col = colors[i], lwd = 3, lty = lty[i],
     xlab = "Time (sec)", ylab = "(fEPSP % baseline)'",
@@ -25,6 +31,8 @@ for (i in seq_along(fd_groups)) {
   
   abline(h = 0, col = "red", lty = 1)
   grid()
+  
+  dev.off()
 }
 
 
