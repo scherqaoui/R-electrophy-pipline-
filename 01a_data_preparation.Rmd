@@ -8,12 +8,14 @@ date: "2025-11-20"
 
 
 ```{r raw data}
+
 library(fda)
 library(fda.usc)
 library(readxl)
 library(dplyr)
 library(tidyr)
 library(fdANOVA)
+library(zoo)
 
 #Raw electrophysiology Excel sheets
 data_juv <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "juv")
@@ -24,7 +26,8 @@ data_adu <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx"
 
 
 #Removes unused rows/columns
-clean_data <- function(data, time_min, time_max, drop_cols) {
+clean_data <- function(data, time_min, time_max, drop_cols, method = c("linear", "spline")) {
+  method <- match.arg(method)
   data <- data[, -drop_cols]
   colnames(data) <- as.character(unlist(data[5, ]))
   data <- data[-c(1:6), ]
@@ -32,15 +35,26 @@ clean_data <- function(data, time_min, time_max, drop_cols) {
   data$Time <- as.numeric(data$Time)
   data[-1] <- lapply(data[-1], as.numeric)
   
-  data %>%
-    filter(Time >= time_min & Time <= time_max) %>%
-    filter(complete.cases(.))
+  
+  data <- data %>% filter(Time >= time_min & Time <= time_max)
+  
+  # Replace NA by interpolation
+  data[-1] <- lapply(data[-1], function(x) {
+    if (method == "linear") {
+      na.approx(x, x = data$Time, na.rm = FALSE, rule = 2)  # linear interpolation
+    } else {
+      na.spline(x, x = data$Time)                # spline interpolation
+    }
+  })
+  
+  return(data)
+
 }
 
 
-cleaned_data_juv <- clean_data(data_juv, 10, 2400, c(1:4,6,15,26:32,43,44))
-cleaned_data_ado <- clean_data(data_ado, 10, 2390, c(1:4,16,23,26,37))
-cleaned_data_adu <- clean_data(data_adu, 10, 2390, c(1:4,6,11,17,20,28,29,36,38,39,43))
+cleaned_data_juv <- clean_data(data_juv, 10, 2400, c(1:4,6,15,26:32,43,44), method = "linear")
+cleaned_data_ado <- clean_data(data_ado, 10, 2400, c(1:4,16,23,26,37), method = "linear")
+cleaned_data_adu <- clean_data(data_adu, 10, 2400, c(1:4,6,11,17,20,28,29,36,38,39,43), method = "linear")
 #cleaned_data_age <- clean_data(data_age, 10, 2390, c(1:4,6,11,13,14))
 
 
