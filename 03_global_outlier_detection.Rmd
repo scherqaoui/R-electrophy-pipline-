@@ -41,7 +41,6 @@ depth_results <- lapply(all_fd_groups, function(group) {
 # A named list of detect outlier fd curves for all groups 
 all_detected_fd_groups <- setNames(depth_results, groups_names)
 
-
 ```
 
 
