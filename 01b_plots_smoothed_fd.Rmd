@@ -67,11 +67,6 @@ for (i in 1:length(all_fd_groups)) {
 
 
 
-
-
-
-
-
 ```{r plot functional boxplot}
 
 plot_boxplot <- function(fd_gp, title_gp, col, lty,
@@ -83,6 +78,12 @@ plot_boxplot <- function(fd_gp, title_gp, col, lty,
   fbplot(mat, method = 'MBD', ylim = ylim_global)
   
   title(main = title_gp, xlab = "Time (sec)", ylab = "fEPSP % of baseline")
+  
+  legend("topright",
+         legend = c("envelopes.", "median curve", "outlier candidates"),
+         col = c("#0072B2", "black", "red"),
+         lwd = c(2,2,1), lty = c(1,1,2),
+         cex = 0.7, bty = "n")
 }
 
 if (!dir.exists("figures_boxplot_data")) dir.create("figures_boxplot_data")
@@ -106,6 +107,7 @@ for (i in 1:length(all_fd_groups)) {
   dev.off()
 }
 
+#The functional boxplot of SST with blue curves denoting envelopes, and a black curve representing the median curve. The red dashed curves are the outlier candidates detected by the 1.5 times the 50% central region rule.  
 
 
 ```
