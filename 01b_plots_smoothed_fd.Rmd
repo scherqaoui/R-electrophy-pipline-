@@ -65,3 +65,56 @@ for (i in 1:length(all_fd_groups)) {
 
 ```
 
+
+
+
+
+
+
+
+```{r plot functional boxplot}
+
+plot_boxplot <- function(fd_gp, title_gp, col, lty,
+                         ylim_global = NULL) {
+  
+  
+  fbplot(fd_gp,method='MBD',ylim= ylim_global )
+}
+
+if (!dir.exists("figures_boxplot_data")) dir.create("figures_boxplot_data")
+
+for (i in 1:length(all_fd_groups)) {
+  
+  file_name <- paste0("figures_boxplot_data/", groups_names[i], ".png")
+  
+  png(filename = file_name, width = 1200, height = 800, res = 150)
+  
+  plot_boxplot(
+    fd_gp = all_fd_groups[[i]],
+    title_gp = groups_names[i],
+    col = colors[i],
+    lty =lty[i],
+    ylim_global = ylim_global
+    
+    
+  )
+  
+  grid()
+  
+  dev.off()
+}
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
