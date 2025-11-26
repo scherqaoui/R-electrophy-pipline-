@@ -77,8 +77,12 @@ for (i in 1:length(all_fd_groups)) {
 plot_boxplot <- function(fd_gp, title_gp, col, lty,
                          ylim_global = NULL) {
   
+  grid <- seq(min(Time), max(Time), length.out = 200)
+  mat  <- eval.fd(grid, fd_gp)   # fbplot accept only matrices evaluated on grid
   
-  fbplot(fd_gp,method='MBD',ylim= ylim_global )
+  fbplot(mat, method = 'MBD', ylim = ylim_global)
+  
+  title(main = title_gp, xlab = "Time (sec)", ylab = "fEPSP % of baseline")
 }
 
 if (!dir.exists("figures_boxplot_data")) dir.create("figures_boxplot_data")
@@ -93,16 +97,15 @@ for (i in 1:length(all_fd_groups)) {
     fd_gp = all_fd_groups[[i]],
     title_gp = groups_names[i],
     col = colors[i],
-    lty =lty[i],
+    lty = lty[i],
     ylim_global = ylim_global
-    
-    
   )
   
   grid()
   
   dev.off()
 }
+
 
 
 ```
