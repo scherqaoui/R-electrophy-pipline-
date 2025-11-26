@@ -10,61 +10,84 @@ rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
 
-Local_outlier <- function(group_data, smooth_fd_object, Time, alpha = 0.05) {
+Local_outlier <- function(group_data, result_common, Time, alpha = 0.05) {
+  
+  basis_obj <- result_common$basis
+  lambda    <- result_common$lambda_opt
+  fdPar_obj <- fdPar(basis_obj, Lfdobj = 2, lambda = lambda)
+  
+  grid <- seq(min(Time), max(Time), length.out = 200)
+  
   group_data <- as.matrix(group_data)
   group_data <- apply(group_data, 2, as.numeric)
-
-  # Shared basis and lambda
-  basis_obj <- smooth_fd_object$basis
-  lambda <- smooth_fd_object$lambda_opt
-  fdPar_group <- fdPar(basis_obj, Lfdobj = int2Lfd(2), lambda = lambda)
-
+  
   imputed_data <- group_data
-
+  
   nbasis <- basis_obj$nbasis
   n <- length(Time)
-  df <- n - nbasis  # degrees of freedom for residuals
-
-  # Student-t quantile
-  t_quantile <- qt(1 - alpha / 2, df = max(df, 1))  # avoid df <= 0
-
+  df <- max(n - nbasis, 1)
+  t_quantile <- qt(1 - alpha/2, df)
+  
   for (i in seq_len(ncol(group_data))) {
-    # Step 1: Smooth the curve
-    fd_i <- smooth.basis(Time, group_data[, i], fdPar_group)$fd
+    
+    # --- STEP 1: Smoothing raw curve with common basis ---
+    interp_i <- approx(Time, group_data[, i], xout = grid)$y
+    fd_i     <- smooth.basis(grid, interp_i, fdPar_obj)$fd
     predicted_i <- eval.fd(Time, fd_i)
-
-    # Step 2: Residuals and outlier detection
+    
+    # --- STEP 2: Detect outliers ---
     residuals <- group_data[, i] - predicted_i
     sigma_hat <- sd(residuals, na.rm = TRUE)
     threshold <- t_quantile * sigma_hat
-    outliers <- abs(residuals) > threshold
+    outliers  <- abs(residuals) > threshold
+    
+    keep_idx <- which(!outliers)
 
-    # Step 3: Re-smooth using only non-outlier points
-    filtered_idx <- which(!outliers)
-    if (length(filtered_idx) > 10) {
-      fd_clean <- smooth.basis(
-        argvals = Time[filtered_idx],
-        y = group_data[filtered_idx, i],
-        fdParobj = fdPar_group
-      )$fd
-
-      # Step 4: Impute the outlier values
-      imputed_values <- eval.fd(Time[outliers], fd_clean)
-      imputed_data[outliers, i] <- imputed_values
+    # --- CASE 1: Too many outliers -> skip cleaning ---
+    if (length(keep_idx) < 5) {
+      next  # keep original values (no imputation)
     }
+    
+    # --- STEP 3: Clean curve using only non-outlier points ---
+    interp_clean <- approx(
+      Time[keep_idx], group_data[keep_idx, i], xout = grid, rule = 2
+    )$y
+    
+    # If interp_clean has too many NA -> skip
+    if (sum(!is.na(interp_clean)) < 5) {
+      next
+    }
+    
+    fd_clean <- smooth.basis(grid, interp_clean, fdPar_obj)$fd
+    smoothed_clean_curve <- eval.fd(grid, fd_clean)
+    
+    # --- STEP 4: Impute outliers safely ---
+    imputed_vals <- approx(
+      grid, smoothed_clean_curve,
+      xout = Time[outliers],
+      rule = 2
+    )$y
+    
+    imputed_data[outliers, i] <- imputed_vals
   }
-
-  # Final smoothing on imputed data
-  final_fd <- smooth.basis(Time, imputed_data, fdPar_group)$fd
-
+  
+  # --- FINAL smoothing after imputation ---
+  final_interp <- apply(imputed_data, 2, function(y)
+    approx(Time, y, xout = grid, rule = 2)$y)
+  
+  coefs <- sapply(1:ncol(imputed_data), function(i)
+    smooth.basis(grid, final_interp[, i], fdPar_obj)$fd$coefs)
+  
+  fd_final <- fd(coefs, basis_obj)
+  
   return(list(
-    fd = final_fd,
-    lambda = lambda,
-    basis = basis_obj,
+    fd = fd_final,
     imputed_data = imputed_data,
-    alpha = alpha
+    basis = basis_obj,
+    lambda = lambda
   ))
 }
+
 
 cleaned_results <- lapply(all_groups, function(group) {
   Local_outlier(group, result_common, Time)
