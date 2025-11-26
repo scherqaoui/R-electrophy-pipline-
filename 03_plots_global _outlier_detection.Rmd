@@ -38,7 +38,7 @@ for (i in seq_along(depth_results)) {
   
   plot_detect_outliers(
     fd_group = all_fd_groups[[i]],
-    outliers_group  = depth_results[[i]],
+    outliers_group  = all_detected_fd_groups[[i]],
     title  = groups_names[i],
     depth_col = colors[i]
   )
