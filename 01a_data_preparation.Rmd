@@ -55,7 +55,7 @@ clean_data <- function(data, time_min, time_max, drop_cols, method = c("linear",
 cleaned_data_juv <- clean_data(data_juv, 10, 2400, c(1:4,6,15,26:32,43,44), method = "linear")
 cleaned_data_ado <- clean_data(data_ado, 10, 2400, c(1:4,16,23,26,37), method = "linear")
 cleaned_data_adu <- clean_data(data_adu, 10, 2400, c(1:4,6,11,17,20,28,29,36,38,39,43), method = "linear")
-cleaned_data_age <- clean_data(data_age, 10, 2390, c(1:4,6,11,13,14), method = "linear")
+cleaned_data_age <- clean_data(data_age, 10, 2400, c(1:4,6,11,13:16), method = "linear")
 
 
 Time <- cleaned_data_juv$Time
@@ -89,8 +89,8 @@ all_groups <- list(
   femalesHRMadu  = matrix_adu[, 26:33],
   
   # Age
-  malesWTage    = matrix_age[, 1:5],
-  malesHRMage   = matrix_adu[, 10:18]
+  malesWTage    = matrix_age[, 1:6],
+  malesHRMage   = matrix_adu[, 7:13]
   #femalesWTage  = matrix_adu[, 19:25],
   #femalesHRMage  = matrix_adu[, 26:33],
   
