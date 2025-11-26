@@ -51,16 +51,24 @@ ymin <- min(sapply(all_2nd_derivs, min))
 ymax <- max(sapply(all_2nd_derivs, max))
 
 
+if (!dir.exists("figures_2nd_derivatives")) dir.create("figures_2nd_derivatives")
+
 for (i in seq_along(fd_groups)) {
+  
+  file_name <- paste0("figures_2nd_derivatives/2nd_derivative_", legends[i], ".png")
+  png(file_name, width = 1400, height = 900, res = 150)
+  
   plot(
     Time, all_2nd_derivs[[i]], type = "l", col = colors[i], lwd = 3, lty = lty[i],
     xlab = "Time (sec)", ylab = "(fEPSP % baseline)'' ",
-    main = paste("First Derivative -", legends[i]),
+    main = paste("Second Derivative -", legends[i]),
     ylim = c(ymin, ymax)   # <-- same scale
   )
   
   abline(h = 0, col = "red", lty = 2)
   grid()
+  
+  dev.off()
 }
 
 ```
