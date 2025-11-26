@@ -59,6 +59,15 @@ anova_table3 <- data.frame(
 print(anova_table3)
 
 
+if (!dir.exists("results_tables")) dir.create("results_tables")
+
+library(gridExtra)
+
+png("results_tables/anova_table3.png", width = 1600, height = 600, res = 150)
+grid.table(anova_table3)
+dev.off()
+
+
 ```
 
 
