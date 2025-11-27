@@ -67,58 +67,45 @@ for (i in 1:length(all_fd_groups)) {
 
 
 
-```{r plot functional boxplot}
 
-plot_boxplot <- function(fd_gp, title_gp, col, lty,
-                         ylim_global = NULL) {
-  
-  grid <- seq(min(Time), max(Time), length.out = 200)
-  mat  <- eval.fd(grid, fd_gp)   # fbplot accept only matrices evaluated on grid
-  
-  fbplot(mat, method = 'MBD', ylim = ylim_global)
-  
-  title(main = title_gp, xlab = "Time (sec)", ylab = "fEPSP % of baseline")
-  
-  legend("topright",
-         legend = c("envelopes.", "median curve", "outlier candidates"),
-         col = c("#0072B2", "black", "red"),
-         lwd = c(2,2,1), lty = c(1,1,2),
-         cex = 0.7, bty = "n")
-}
+```{r functional box genotype sex}
 
-if (!dir.exists("figures_boxplot_data")) dir.create("figures_boxplot_data")
+male_WT_groups  <- grep("^Males WT",  names(all_fd_groups), value = TRUE)
+male_HRM_groups <- grep("^Males HRM", names(all_fd_groups), value = TRUE)
 
-for (i in 1:length(all_fd_groups)) {
-  
-  file_name <- paste0("figures_boxplot_data/", groups_names[i], ".png")
-  
-  png(filename = file_name, width = 1200, height = 800, res = 150)
-  
-  plot_boxplot(
-    fd_gp = all_fd_groups[[i]],
-    title_gp = groups_names[i],
-    col = colors[i],
-    lty = lty[i],
-    ylim_global = ylim_global
-  )
-  
-  grid()
-  
-  dev.off()
-}
+female_WT_groups  <- grep("^Females WT",  names(all_fd_groups), value = TRUE)
+female_HRM_groups <- grep("^Females HRM", names(all_fd_groups), value = TRUE)
 
-#The functional boxplot of SST with blue curves denoting envelopes, and a black curve representing the median curve. The red dashed curves are the outlier candidates detected by the 1.5 times the 50% central region rule.  
 
+male_WT_mat  <- do.call(cbind, lapply(all_fd_groups[male_WT_groups],  function(fd) eval.fd(grid, fd)))
+male_HRM_mat <- do.call(cbind, lapply(all_fd_groups[male_HRM_groups], function(fd) eval.fd(grid, fd)))
+
+female_WT_mat  <- do.call(cbind, lapply(all_fd_groups[female_WT_groups],  function(fd) eval.fd(grid, fd)))
+female_HRM_mat <- do.call(cbind, lapply(all_fd_groups[female_HRM_groups], function(fd) eval.fd(grid, fd)))
+
+dir.create("figures_fboxplot_genotypes_sex", showWarnings = FALSE)
+
+# MALES WT
+png("figures_fboxplot_genotypes_sex/fbplot_males_WT.png", width=1400, height=900, res=150)
+plot_fb(male_WT_mat, grid, "Functional Boxplot – Males WT", ylim_global)
+dev.off()
+
+# MALES HRM
+png("figures_fboxplot_genotypes_sex/fbplot_males_HRM.png", width=1400, height=900, res=150)
+plot_fb(male_HRM_mat, grid, "Functional Boxplot – Males HRM", ylim_global)
+dev.off()
+
+# FEMALES WT
+png("figures_fboxplot_genotypes_sex/fbplot_females_WT.png", width=1400, height=900, res=150)
+plot_fb(female_WT_mat, grid, "Functional Boxplot – Females WT", ylim_global)
+dev.off()
+
+# FEMALES HRM
+png("figures_fboxplot_genotypes_sex/fbplot_females_HRM.png", width=1400, height=900, res=150)
+plot_fb(female_HRM_mat, grid, "Functional Boxplot – Females HRM", ylim_global)
+dev.off()
 
 ```
-
-
-
-
-
-
-
-
 
 
 
