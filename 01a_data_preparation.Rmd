@@ -100,9 +100,10 @@ all_groups <- list(
 #Metadata
 
 groups_names <- c(
-  "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",
-  "Males WT Adolescent","Males HRM Adolescent","Females WT Adolescent","Females HRM Adolescent","Males WT Adult","Males HRM Adult","Females WT Adult", "Females HRM Adult",
-  "Males WT age", "Males HRM age"
+  "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",  #Juvenile
+  "Males WT Adolescent","Males HRM Adolescent","Females WT Adolescent","Females HRM Adolescent", #Adolescent
+  "Males WT Adult","Males HRM Adult","Females WT Adult", "Females HRM Adult",  #Adult
+  "Males WT age", "Males HRM age"  #Age
   )
 
 
@@ -120,7 +121,9 @@ colors <- c(
 )   
 
 
-lty <- c(1,2,1,2, 1,2,1,2, 1,2,1,2,
+lty <- c(1,2,1,2,
+         1,2,1,2,
+         1,2,1,2,
          1,2
          )
 
