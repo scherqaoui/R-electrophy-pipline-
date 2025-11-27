@@ -70,39 +70,58 @@ for (i in 1:length(all_fd_groups)) {
 
 ```{r functional box genotype sex}
 
+#identifying groups by sex and genotype
 male_WT_groups  <- grep("^Males WT",  names(all_fd_groups), value = TRUE)
 male_HRM_groups <- grep("^Males HRM", names(all_fd_groups), value = TRUE)
-
 female_WT_groups  <- grep("^Females WT",  names(all_fd_groups), value = TRUE)
 female_HRM_groups <- grep("^Females HRM", names(all_fd_groups), value = TRUE)
 
-
+#matrices for each sex_genotype groupe
 male_WT_mat  <- do.call(cbind, lapply(all_fd_groups[male_WT_groups],  function(fd) eval.fd(grid, fd)))
 male_HRM_mat <- do.call(cbind, lapply(all_fd_groups[male_HRM_groups], function(fd) eval.fd(grid, fd)))
-
 female_WT_mat  <- do.call(cbind, lapply(all_fd_groups[female_WT_groups],  function(fd) eval.fd(grid, fd)))
 female_HRM_mat <- do.call(cbind, lapply(all_fd_groups[female_HRM_groups], function(fd) eval.fd(grid, fd)))
+
+
+ylim_global_fb <- range(c(male_WT_mat,male_HRM_mat,female_WT_mat,female_HRM_mat ))
+  
+
+plot_fb <- function(mat, grid, title, ylim) {
+
+  fbplot(mat, method = "MBD", ylim = ylim)
+
+  title(main = title, xlab = "Time (sec)", ylab = "fEPSP % baseline")
+
+  legend("topright",
+         legend = c("median curve","50% central region(non outliers)","bornes des non outlier (whiskers)", "outlier candidates"),
+         col    = c("black","magenta3","#0072B2", "red"),
+         lwd    = c(2, 20, 2, 1),
+         lty    = c(1, 1,1,2),
+         cex = 0.7, bty = "n")
+}
+
+
 
 dir.create("figures_fboxplot_genotypes_sex", showWarnings = FALSE)
 
 # MALES WT
 png("figures_fboxplot_genotypes_sex/fbplot_males_WT.png", width=1400, height=900, res=150)
-plot_fb(male_WT_mat, grid, "Functional Boxplot – Males WT", ylim_global)
+plot_fb(male_WT_mat, grid, "Functional Boxplot – Males WT", ylim_global_fb)
 dev.off()
 
 # MALES HRM
 png("figures_fboxplot_genotypes_sex/fbplot_males_HRM.png", width=1400, height=900, res=150)
-plot_fb(male_HRM_mat, grid, "Functional Boxplot – Males HRM", ylim_global)
+plot_fb(male_HRM_mat, grid, "Functional Boxplot – Males HRM", ylim_global_fb)
 dev.off()
 
 # FEMALES WT
 png("figures_fboxplot_genotypes_sex/fbplot_females_WT.png", width=1400, height=900, res=150)
-plot_fb(female_WT_mat, grid, "Functional Boxplot – Females WT", ylim_global)
+plot_fb(female_WT_mat, grid, "Functional Boxplot – Females WT", ylim_global_fb)
 dev.off()
 
 # FEMALES HRM
 png("figures_fboxplot_genotypes_sex/fbplot_females_HRM.png", width=1400, height=900, res=150)
-plot_fb(female_HRM_mat, grid, "Functional Boxplot – Females HRM", ylim_global)
+plot_fb(female_HRM_mat, grid, "Functional Boxplot – Females HRM", ylim_global_fb)
 dev.off()
 
 ```
