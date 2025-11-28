@@ -6,6 +6,7 @@ date: "2025-11-21"
 
 
 ```{r}
+
 rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("05_kinetics_derivatives.Rmd", envir = globalenv(), quiet = TRUE)
 
