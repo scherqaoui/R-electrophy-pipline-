@@ -70,6 +70,12 @@ for (i in 1:length(all_fd_groups)) {
 
 ```{r functional box genotype sex}
 
+
+
+#-----Plot Functional boxplot for each group identified by sex and genotype-----
+
+
+
 #identifying groups by sex and genotype
 male_WT_groups  <- grep("^Males WT",  names(all_fd_groups), value = TRUE)
 male_HRM_groups <- grep("^Males HRM", names(all_fd_groups), value = TRUE)
