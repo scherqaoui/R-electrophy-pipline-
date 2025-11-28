@@ -35,8 +35,13 @@ estimer_rho_groupe <- function(residuals_matrix) {
 #-----------------------------------------------------
 # Plotting residual diagnostics for each group
 #-----------------------------------------------------
+if (!dir.exists("figures_residual_study")) dir.create("figures_residual_study")
+
 
 for (i in seq_along(groups_names)) {
+  file_name <- paste0("figures_residual_study/", groups_names[i], ".png")
+  
+  png(filename = file_name, width = 1200, height = 800, res = 150)
   
   nom <- groups_names[i]
   group_data <- all_groups[[i]]
@@ -70,6 +75,8 @@ for (i in seq_along(groups_names)) {
   # Empirical rho
   rho_HA <- estimer_rho_groupe(residus)
   cat("Mean empirical rho for", nom, ": ", round(rho_HA, 4), "\n\n")
+  
+  dev.off()
 }
 
 
