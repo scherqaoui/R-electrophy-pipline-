@@ -27,8 +27,8 @@ Common_smoothing <- function(all_data_groups, Time) {
 
   # ---------------- 1. Lissage très léger du signal global  ----------------
   # Pré-lissage : seulement pour calculer les noeuds
-  basis_tmp <- create.bspline.basis(range(Time), nbasis = 6, norder = 4)
-  fdPar_tmp <- fdPar(basis_tmp, Lfdobj = 2, lambda = 1)
+  basis_tmp <- create.bspline.basis(range(Time), nbasis = 4, norder = 4)
+  fdPar_tmp <- fdPar(basis_tmp, Lfdobj = 2, lambda = 8)
   smooth_tmp <- smooth.basis(Time, y_mean_raw, fdPar_tmp)$fd
   y_mean_smooth <- eval.fd(Time, smooth_tmp)
 
@@ -39,7 +39,7 @@ Common_smoothing <- function(all_data_groups, Time) {
   w <- abs(d2y)
   w <- w / sum(w)
 
-  nbasis <- 20       # (anciennement 12 → amélioration majeure)
+  nbasis <- 12       # (anciennement 12 → amélioration majeure)
   norder <- 4
   nbreaks <- nbasis - norder + 2
 
@@ -52,7 +52,7 @@ Common_smoothing <- function(all_data_groups, Time) {
   basis <- create.bspline.basis(range(Time), norder = norder, breaks = breaks)
 
   # ---------------- 3. Sélection améliorée de lambda via GCV----------------
-  lambda_values <- 10^seq(-2, 4, length.out = 200)
+  lambda_values <- 10^seq(-1, 3, length.out = 500)
 
   gcv <- sapply(lambda_values, function(lambda) {
     fdP <- fdPar(basis, Lfdobj = 2, lambda = lambda)
@@ -111,9 +111,104 @@ all_fd_groups <- setNames(result_common$fd_list, groups_names)
 ajouter comparaison graphique de lissage avec plusieurs nb de fonctions de bases(12, 20)
 
 
+choix de nb basis function
 
 
 
+```{r}
+Common_smoothing <- function(all_data_groups, Time,
+                             nbasis_range = seq(12, 40, by = 4),
+                             norder = 4,
+                             lambda_seq = 10^seq(-3, 4, length.out = 80)) {
+  
+  # 1) Calcul du signal global pour guider le lissage
+  y_global <- rowMeans(do.call(cbind, all_data_groups), na.rm = TRUE)
+  
+  # 2) Calcul de la 2e dérivée approximative → zones de forte dynamique
+  dy  <- diff(y_global) / diff(Time)
+  d2y <- diff(dy) / diff(Time[-1])
+  d2y <- c(d2y[1], d2y, tail(d2y, 1))
+  
+  weights <- abs(d2y)
+  if (sum(weights) == 0) weights <- rep(1, length(weights))
+  weights <- weights / sum(weights)
 
+  # Stockage du meilleur modèle global
+  best <- list(gcv = Inf)
+
+  # 3) Boucle sur nbasis pour trouver best nbasis + best lambda
+  for (nb in nbasis_range) {
+
+    nbreaks <- nb - norder + 2
+    cum_w <- cumsum(weights)
+
+    quantiles <- seq(0, 1, length.out = nbreaks + 2)[-c(1, nbreaks + 2)]
+    break_idx <- sapply(quantiles, function(q) which.min(abs(cum_w - q)))
+
+    nodes <- unique(c(min(Time), Time[break_idx], max(Time)))
+
+    basis_tmp <- create.bspline.basis(rangeval = range(Time),
+                                      norder = norder,
+                                      breaks = nodes)
+
+    # GCV pour tous les lambda
+    gcv_vec <- sapply(lambda_seq, function(l) {
+      fdP <- fdPar(basis_tmp, Lfdobj = 2, lambda = l)
+      fit <- tryCatch(smooth.basis(Time, y_global, fdP),
+                      error = function(e) NULL)
+      if (is.null(fit)) return(Inf)
+      mean(fit$gcv, na.rm = TRUE)
+    })
+
+    lambda_best <- lambda_seq[which.min(gcv_vec)]
+    gcv_best <- min(gcv_vec)
+
+    if (gcv_best < best$gcv) {
+      best <- list(
+        nbasis = nb,
+        lambda = lambda_best,
+        gcv = gcv_best,
+        basis = basis_tmp,
+        nodes = nodes
+      )
+    }
+  }
+
+  message(">>> BEST nbasis = ", best$nbasis)
+  message(">>> BEST lambda = ", round(best$lambda, 5))
+
+  # 4) Lissage final de toutes les courbes avec la meilleure base + meilleur lambda
+  grid <- seq(min(Time), max(Time), length.out = 200)
+  fdPar_best <- fdPar(best$basis, Lfdobj = 2, lambda = best$lambda)
+
+  fd_group_list <- lapply(all_data_groups, function(g) {
+    coefs_list <- list()
+    for (i in seq_len(ncol(g))) {
+      interp <- approx(Time, g[, i], xout = grid)$y
+      fd_i <- smooth.basis(grid, interp, fdPar_best)$fd
+      coefs_list[[i]] <- fd_i$coefs
+    }
+    coef_mat <- do.call(cbind, coefs_list)
+    fd(coef_mat, best$basis)
+  })
+
+  return(list(
+    fd_list = fd_group_list,
+    basis = best$basis,
+    nodes = best$nodes,
+    lambda_opt = best$lambda,
+    nbasis = best$nbasis
+  ))
+}
+
+# applying the common smoothing
+result_common <- Common_smoothing(all_groups, Time)
+
+
+# A named list of fd objects, one per group
+all_fd_groups <- setNames(result_common$fd_list, groups_names)
+
+
+```
 
 
