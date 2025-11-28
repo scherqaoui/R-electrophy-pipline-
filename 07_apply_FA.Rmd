@@ -17,20 +17,20 @@ set.seed(1234)
 
 # Suppose having n functional observations (each in fd_groups[[i]]).  we define:
 
-geno <- c("WT","HRM","WT","HRM", 
+Genotype <- c("WT","HRM","WT","HRM", 
           "WT","HRM","WT","HRM",
           "WT","HRM","WT","HRM")
 
-age  <- c("juv","juv","juv","juv",
+Age  <- c("juv","juv","juv","juv",
           "ado","ado","ado","ado", 
           "adu", "adu","adu", "adu")
 
-sexe <- c("M","M","F","F",
+Sex <- c("M","M","F","F",
           "M","M","F","F",
           "M","M","F","F")
 
 # Runing the 3-way functional ANOVA (with 2 000 permutations):
-res3 <- fanova3_FP(fd_groups, geno, age, sexe, P = 2000)
+res3 <- fanova3_FP(fd_groups, Genotype, Age, Sex, P = 2000)
 
 # Extracting results:
 fstats     <- res3$stat       # FG, FA, FS, FAG, FGS, FAS, FGAS
@@ -40,7 +40,7 @@ eta2       <- res3$effect_size_eta
 
 # A small ANOVA table:
 anova_table3 <- data.frame(
-  Factor      = c("geno","age","sexe","geno:age","geno:sexe","age:sexe","geno:age:sexe"),
+  Factor      = c("Genotype","Age","Sex","Genotype:Age","Genotype:Sex","Age:Sex","Genotype:Age:Sex"),
   F_stat      = c(fstats["FG"],    fstats["FA"],    fstats["FS"],
                   fstats["FAG"],   fstats["FGS"],   fstats["FAS"],
                   fstats["FGAS"]),
