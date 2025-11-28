@@ -55,7 +55,7 @@ clean_data <- function(data, time_min, time_max, drop_cols, method = c("linear",
 cleaned_data_juv <- clean_data(data_juv, 10, 2400, c(1:4,6,15,26:32,43,44), method = "linear")
 cleaned_data_ado <- clean_data(data_ado, 10, 2400, c(1:4,16,23,26,37), method = "linear")
 cleaned_data_adu <- clean_data(data_adu, 10, 2400, c(1:4,6,11,17,20,28,29,36,38,39,43), method = "linear")
-cleaned_data_age <- clean_data(data_age, 10, 2400, c(1:4,6,11,13:16), method = "linear")
+cleaned_data_age <- clean_data(data_age, 10, 2400, c(1:4,6,11,13:16,24), method = "linear")
 
 
 Time <- cleaned_data_juv$Time
@@ -90,9 +90,9 @@ all_groups <- list(
   
   # Age
   malesWTage    = matrix_age[, 1:6],
-  malesHRMage   = matrix_adu[, 7:13]
-  #femalesWTage  = matrix_adu[, 19:25],
-  #femalesHRMage  = matrix_adu[, 26:33],
+  malesHRMage   = matrix_age[, 7:13],
+  femalesWTage  = matrix_age[, 14:19]
+  #femalesHRMage  = matrix_age[, 26:33],
   
 )
 
@@ -103,7 +103,7 @@ groups_names <- c(
   "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",  #Juvenile
   "Males WT Adolescent","Males HRM Adolescent","Females WT Adolescent","Females HRM Adolescent", #Adolescent
   "Males WT Adult","Males HRM Adult","Females WT Adult", "Females HRM Adult",  #Adult
-  "Males WT age", "Males HRM age"  #Age
+  "Males WT Aged", "Males HRM Aged", "Females WT Aged"  #Age
   )
 
 
@@ -116,7 +116,7 @@ colors <- c(
     # Adult 
    "green3","green3","#1F7F1F","#1F7F1F",
    #age
-   "red2","red"
+   "red2","red","purple"
   
 )   
 
@@ -124,7 +124,7 @@ colors <- c(
 lty <- c(1,2,1,2,
          1,2,1,2,
          1,2,1,2,
-         1,2
+         1,2,1
          )
 
 
