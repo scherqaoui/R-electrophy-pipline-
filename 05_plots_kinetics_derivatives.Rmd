@@ -4,15 +4,21 @@ output: html_document
 date: "2025-11-21"
 ---
 
-```{r velocity }
 
-
+```{r}
+rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("05_kinetics_derivatives.Rmd", envir = globalenv(), quiet = TRUE)
 
 legends <- groups_names
 
 ymin <- min(sapply(all_1st_derivs, min))
 ymax <- max(sapply(all_1st_derivs, max))
+
+```
+
+
+
+```{r velocity }
 
 if (!dir.exists("figures_1st_derivatives")) dir.create("figures_1st_derivatives")
 
@@ -42,15 +48,6 @@ for (i in seq_along(fd_groups)) {
 
 ```{r acceleration }
 
-rmarkdown::render("05_kinetics_derivatives.Rmd", envir = globalenv(), quiet = TRUE)
-rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
-
-
-
-ymin <- min(sapply(all_2nd_derivs, min))
-ymax <- max(sapply(all_2nd_derivs, max))
-
-
 if (!dir.exists("figures_2nd_derivatives")) dir.create("figures_2nd_derivatives")
 
 for (i in seq_along(fd_groups)) {
@@ -72,4 +69,39 @@ for (i in seq_along(fd_groups)) {
 }
 
 ```
+
+
+
+
+
+```{r phase_portrait_f'_vs_f''}
+
+
+if (!dir.exists("figures_phase_portraits")) dir.create("figures_phase_portraits")
+
+for (i in seq_along(fd_groups)) {
+
+  file_name <- paste0("figures_phase_portraits/phase_fprime_vs_fdoubleprime_", legends[i], ".png")
+  png(file_name, width = 1400, height = 900, res = 150)
+
+  dx  <- all_1st_derivs[[i]]   # velocity
+  ddx <- all_2nd_derivs[[i]]   # acceleration
+
+  plot(
+    dx, ddx, type = "l", lwd = 3, col = colors[i],
+    xlab = "Velocity (1st derivative)",
+    ylab = "Acceleration (2nd derivative)",
+    main = paste("Phase Portrait: f'(t) vs f''(t) -", legends[i])
+  )
+
+  abline(h = 0, v = 0, col = "red", lty = 2)
+  grid()
+  dev.off()
+}
+
+```
+
+
+
+
 

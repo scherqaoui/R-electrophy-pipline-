@@ -16,7 +16,7 @@ png("figures_mu_curve/mean_function_curves.png",
 
 
 par(mar = c(5, 4, 4, 10))  
-grid <- seq(min(Time), max(Time), length.out = 200)
+grid <- seq(min(Time), max(Time), length.out = 500)
 ylim_mean <- range(unlist(mean_values_list))
 
 

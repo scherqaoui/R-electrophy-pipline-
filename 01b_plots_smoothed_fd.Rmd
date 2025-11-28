@@ -13,7 +13,7 @@ rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 #-------------------------Plot group's curves------------------------
 
 
-grid <- seq(min(Time), max(Time), length.out = 300)
+grid <- seq(min(Time), max(Time), length.out = 500)
 
 all_vals <- unlist(lapply(all_fd_groups, function(fd) eval.fd(grid, fd)))
 ylim_global <- range(all_vals)
@@ -24,7 +24,7 @@ plot_gp_curves <- function(fd_gp, title_gp, col, lty,
                          ylim_global = NULL) {
   
   
-  grid <- seq(min(Time), max(Time), length.out = 300)
+  grid <- seq(min(Time), max(Time), length.out = 500)
   mat  <- eval.fd(grid, fd_gp)    
   
   #first curves

@@ -15,7 +15,7 @@ rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = 
 #fd list for each group
 fd_groups <- lapply(all_cleaned_fd_groups, function(x) x$fd)
 
-grid <- seq(min(Time), max(Time), length.out = 300)
+grid <- seq(min(Time), max(Time), length.out = 500)
 
 
 # mean functions

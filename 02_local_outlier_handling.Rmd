@@ -17,7 +17,7 @@ Local_outlier <- function(group_data, result_common, Time) {
   basis_obj <- result_common$basis
   lambda    <- result_common$lambda_opt
   fdPar_obj <- fdPar(basis_obj, Lfdobj = 2, lambda = lambda)
-  grid <- seq(min(Time), max(Time), length.out = 200)
+  grid <- seq(min(Time), max(Time), length.out = 500)
 
   group_data <- as.matrix(group_data)
   group_data <- apply(group_data, 2, as.numeric)
