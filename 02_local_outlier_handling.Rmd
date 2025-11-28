@@ -4,27 +4,26 @@ output: html_document
 date: "2025-11-20"
 ---
 
+
+
 ```{r fd data post local outlier}
+
 
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
-
 Local_outlier <- function(group_data, result_common, Time) {
   
-  # Extract common smoothing elements
   basis_obj <- result_common$basis
   lambda    <- result_common$lambda_opt
   fdPar_obj <- fdPar(basis_obj, Lfdobj = 2, lambda = lambda)
-  
   grid <- seq(min(Time), max(Time), length.out = 200)
-  
-  # Convert group to numeric matrix
+
   group_data <- as.matrix(group_data)
   group_data <- apply(group_data, 2, as.numeric)
-  
+
   imputed_data <- group_data
-  
+
   nbasis <- basis_obj$nbasis
   n <- length(Time)
   df <- n - nbasis
@@ -33,11 +32,13 @@ Local_outlier <- function(group_data, result_common, Time) {
   for (i in seq_len(ncol(group_data))) {
     
     # --- Step 1: smooth raw curve using COMMON smoothing ---
+
     interp_i <- approx(Time, group_data[, i], xout = grid)$y
     fd_i     <- smooth.basis(grid, interp_i, fdPar_obj)$fd
     predicted_i <- eval.fd(Time, fd_i)
+      
+    # --- Step 2: detect outliers 
     
-    # --- Step 2: detect outliers (same as before) ---
     residuals <- group_data[, i] - predicted_i
     sigma_hat <- sd(residuals, na.rm = TRUE)
     threshold <- t_quantile * sigma_hat
@@ -45,30 +46,49 @@ Local_outlier <- function(group_data, result_common, Time) {
 
     # --- Step 3: Refit without outliers (still using common basis) ---
     keep_idx <- which(!outliers)
-    if (length(keep_idx) > 10) {
-      
-      interp_clean <- approx(Time[keep_idx],
-                             group_data[keep_idx, i],
-                             xout = grid)$y
-      
-      fd_clean <- smooth.basis(grid, interp_clean, fdPar_obj)$fd
-      
-      # --- Step 4: Impute outliers ---
-      imputed_vals <- approx(grid,
-                             eval.fd(grid, fd_clean),
-                             xout = Time[outliers])$y
-      
-      imputed_data[outliers, i] <- imputed_vals
+
+    # --- Skip if too few points ---
+    if (length(keep_idx) <= 2) {
+      message("WARNING: Not enough points to refit curve ", i, " — skipping.")
+      next
     }
+
+    interp_clean <- approx(Time[keep_idx],
+                           group_data[keep_idx, i],
+                           xout = grid)$y
+
+    # --- PROTECTION: check if interp_clean has at least 2 non-NA values ---
+    if (sum(!is.na(interp_clean)) < 2) {
+      message("WARNING: interp_clean contains <2 non-NA values for curve ", i)
+      next
+    }
+
+    fd_clean <- smooth.basis(grid, interp_clean, fdPar_obj)$fd
+
+    # Evaluate cleaned curve
+    clean_curve <- eval.fd(grid, fd_clean)
+
+    # --- PROTECTION: check again for NA in clean_curve ---
+    if (sum(!is.na(clean_curve)) < 2) {
+      message("WARNING: clean_curve has <2 usable points for curve ", i)
+      next
+    }
+
+    # --- SAFE interpolation (was causing the error) ---
+    imputed_vals <- approx(grid, clean_curve, xout = Time[outliers], rule = 2)$y
+
+    imputed_data[outliers, i] <- imputed_vals
   }
   
   # --- Final smoothing on imputed curve using COMMON basis ---
+
+
   final_interp <- apply(imputed_data, 2, function(y)
     approx(Time, y, xout = grid)$y)
-  
+
   coefs <- sapply(1:ncol(imputed_data), function(i)
     smooth.basis(grid, final_interp[, i], fdPar_obj)$fd$coefs)
-  
+
   fd_final <- fd(coefs, basis_obj)
 
   return(list(
@@ -80,7 +100,6 @@ Local_outlier <- function(group_data, result_common, Time) {
 }
 
 
-
 cleaned_results <- lapply(all_groups, function(group) {
   Local_outlier(group, result_common, Time)
 })
@@ -88,9 +107,7 @@ cleaned_results <- lapply(all_groups, function(group) {
 # A named list of cleaned fd curves for all groups 
 all_cleaned_fd_groups <- setNames(cleaned_results, groups_names)
 
-
 ```
-
 
 
 
