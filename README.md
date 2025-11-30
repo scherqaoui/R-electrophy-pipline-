@@ -166,3 +166,50 @@ They answer *different statistical questions*.
 # Module 07 — Functional ANOVA
 (*Placeholder*)
 
+```{mermaid}
+%% mermaid content here
+```
+
+
+flowchart TD
+  subgraph M01a [Module 01a: Data Preparation]
+    A1[Raw Excel sheets<br/>Juvenile,Adol,Adult,Aged]
+    A2[Time vector]
+    A3[all_groups (matrices)]
+    A4[groups_names / colors / lty]
+  end
+
+  subgraph M01b [Module 01b: Common Smoothing]
+    B1[result_common<br/>(basis, lambda, knots, gcv)]
+    B2[all_fd_groups (fd objects)]
+  end
+
+  subgraph M02 [Module 02: Local Outliers]
+    C1[all_cleaned_fd_groups]
+  end
+
+  subgraph M04 [Module 04: Mean & Var]
+    D1[fd_groups]
+    D2[mean_values_list]
+    D3[var_values_list]
+  end
+
+  subgraph M05_06 [Module 05/06: Derivatives & SCB]
+    E1[kinetics derivatives]
+    E2[scb bootstrap & plots]
+  end
+
+  A1 -->|clean/format| A2
+  A1 -->|clean/format| A3
+  A1 --> A4
+  A2 & A3 & A4 --> M01b
+  M01b --> B1
+  M01b --> B2
+  B1 & A3 --> M02
+  M02 --> C1
+  C1 & B1 --> M04
+  M04 --> D1 & D2 & D3
+  D2 & D3 --> M05_06
+  M05_06 --> E1 & E2
+
+
