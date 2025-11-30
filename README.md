@@ -1,12 +1,3 @@
----
-title: "Pipeline Summary"
-author: "Salma Cherqaoui"
-date: "Nov 2025"
-output: pdf_document
-geometry: margin=1in
-header-includes:
-  - \usepackage{amsmath}
----
 
 # Module 01a — Data Preparation
 
