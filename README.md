@@ -166,11 +166,7 @@ They answer *different statistical questions*.
 # Module 07 — Functional ANOVA
 (*Placeholder*)
 
-```{mermaid}
-%% mermaid content here
-```
-
-
+```mermaid
 flowchart TD
   subgraph M01a [Module 01a: Data Preparation]
     A1[Raw Excel sheets<br/>Juvenile,Adol,Adult,Aged]
@@ -211,5 +207,5 @@ flowchart TD
   M04 --> D1 & D2 & D3
   D2 & D3 --> M05_06
   M05_06 --> E1 & E2
-
+```
 
