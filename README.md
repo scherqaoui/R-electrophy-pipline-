@@ -1,14 +1,5 @@
 ---
-title: ""
-author: "Salma Cherqaoui"
-date: "November 2025"
-output: pdf_document
-geometry: margin=1in
-header-includes:
-  - \usepackage{amsmath}
-  - \usepackage{amssymb}
-  - \usepackage{bbm}
----
+
 
 # Module 01a — Data Preparation
 
