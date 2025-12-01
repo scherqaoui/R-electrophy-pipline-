@@ -238,17 +238,74 @@ fanova3_FP <- function(fd_list, factorG, factorA, factorS, P = 1000, parallel = 
   pAS  <- (1 + sum(permF_AS  >= obs$FF["FAS"]))  / (P + 1)
   pGAS <- (1 + sum(permF_GAS >= obs$FF["FGAS"])) / (P + 1)
   
-  # 8) Return a list of observed stats, dfs, p-values, permutations, and ???
+  
+  
+  # build permutation matrix: P x 7
+  perm_mat <- cbind(permF_G, permF_A, permF_S, permF_AG, permF_GS, permF_AS, permF_GAS)
+  colnames(perm_mat) <- names(obs$FF)  # FG, FA, FS, FAG, FGS, FAS, FGAS
+
+  # standard unadjusted permutation p-values (already computed above)
+  p_unadj <- c(pG = pG, pA = pA, pS = pS, pAG = pAG, pGS = pGS, pAS = pAS, pGAS = pGAS)
+
+  # maxT family-wise error rate (single-step)
+  # For each permutation, compute the maximum F across the 7 effects
+  perm_max <- apply(perm_mat, 1, max)  # length P
+  p_maxT <- sapply(names(obs$FF), function(nm) {
+    (1 + sum(perm_max >= obs$FF[nm])) / (P + 1)
+  })
+  names(p_maxT) <- names(obs$FF)
+
+  # 3) Holm and Bonferroni (classical adjustments on unadjusted p-values)
+  p_holm <- p.adjust(p_unadj, method = "holm")
+  p_bonf <- p.adjust(p_unadj, method = "bonferroni")
+
+  # 4) Benjamini-Hochberg FDR
+  p_BH <- p.adjust(p_unadj, method = "BH")
+
+  # return them (example: add to your return list)
   list(
     stat            = obs$FF,
     df              = obs$df,
-    pvalue          = c(pG = pG, pA = pA, pS = pS, pAG = pAG, pGS = pGS, pAS = pAS, pGAS = pGAS),
+    pvalue_unadj    = p_unadj,
+    pvalue_maxT     = p_maxT,
+    pvalue_holm     = p_holm,
+    pvalue_bonf     = p_bonf,
+    pvalue_BH       = p_BH,
     perm            = list(FG = permF_G, FA = permF_A, FS = permF_S,
                            FAG = permF_AG, FGS = permF_GS, FAS = permF_AS, FGAS = permF_GAS),
     effect_size_eta = c(eta2_G = eta2_G, eta2_A = eta2_A, eta2_S = eta2_S,
                         eta2_AG = eta2_AG, eta2_GS = eta2_GS, eta2_AS = eta2_AS, eta2_GAS = eta2_GAS)
   )
+  
+  # 8) Return a list of observed stats, dfs, p-values, permutations, and ???
+  #list(
+    #stat            = obs$FF,
+    #df              = obs$df,
+    #pvalue          = c(pG = pG, pA = pA, pS = pS, pAG = pAG, pGS = pGS, pAS = pAS, pGAS = pGAS),
+    #perm            = list(FG = permF_G, FA = permF_A, FS = permF_S,
+                           #FAG = permF_AG, FGS = permF_GS, FAS = permF_AS, FGAS = permF_GAS),
+    #effect_size_eta = c(eta2_G = eta2_G, eta2_A = eta2_A, eta2_S = eta2_S,
+                        #eta2_AG = eta2_AG, eta2_GS = eta2_GS, eta2_AS = eta2_AS, eta2_GAS = eta2_GAS)
+  #)
 }
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

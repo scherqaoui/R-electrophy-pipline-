@@ -32,44 +32,37 @@ Sex <- c("M","M","F","F",
           "M","M","F","F",
           "M","M","F","F")
 
-# Runing the 3-way functional ANOVA (with 2 000 permutations):
+# Run 3-way functional ANOVA
 res3 <- fanova3_FP(fd_groups, Genotype, Age, Sex, P = 2000)
 
-# Extracting results:
-fstats     <- res3$stat       # FG, FA, FS, FAG, FGS, FAS, FGAS
-pvals      <- res3$pvalue
-dfs        <- res3$df
-eta2       <- res3$effect_size_eta
+# Extract
+fstats <- res3$stat
+dfs    <- res3$df
+eta2   <- res3$effect_size_eta
 
-# A small ANOVA table:
+# Choose which p-values to report:
+#pvals <- res3$pvalue_maxT    # <-- recommended
+#pvals <- res3$pvalue_unadj # (if we want unadjusted)
+#pvals <- res3$pvalue_BH    # (if we want FDR)
+p_value <- res3$pvalue_holm 
+
 anova_table3 <- data.frame(
   Factor      = c("Genotype","Age","Sex","Genotype:Age","Genotype:Sex","Age:Sex","Genotype:Age:Sex"),
-  F_stat      = c(fstats["FG"],    fstats["FA"],    fstats["FS"],
-                  fstats["FAG"],   fstats["FGS"],   fstats["FAS"],
+  F_stat      = c(fstats["FG"], fstats["FA"], fstats["FS"],
+                  fstats["FAG"], fstats["FGS"], fstats["FAS"],
                   fstats["FGAS"]),
-  p_value     = c(pvals["pG"],     pvals["pA"],     pvals["pS"],
-                  pvals["pAG"],    pvals["pGS"],    pvals["pAS"],
-                  pvals["pGAS"]),
-  df_numer    = c(dfs["dfG"],      dfs["dfA"],      dfs["dfS"],
-                  dfs["dfAG"],     dfs["dfGS"],     dfs["dfAS"],
+  p_value     = c(pvals["FG"],  pvals["FA"],  pvals["FS"],
+                  pvals["FAG"], pvals["FGS"], pvals["FAS"],
+                  pvals["FGAS"]),
+  df_numer    = c(dfs["dfG"],   dfs["dfA"],   dfs["dfS"],
+                  dfs["dfAG"],  dfs["dfGS"],  dfs["dfAS"],
                   dfs["dfGAS"]),
-  #df_denom    = rep(dfs["dfE"], 7),
-  eta2_effect = c(eta2["eta2_G"],  eta2["eta2_A"],  eta2["eta2_S"],
+  eta2_effect = c(eta2["eta2_G"], eta2["eta2_A"], eta2["eta2_S"],
                   eta2["eta2_AG"], eta2["eta2_GS"], eta2["eta2_AS"],
                   eta2["eta2_GAS"])
 )
 
 print(anova_table3)
-
-
-if (!dir.exists("results_tables")) dir.create("results_tables")
-
-library(gridExtra)
-
-png("results_tables/anova_table3.png", width = 1600, height = 600, res = 150)
-grid.table(anova_table3)
-dev.off()
-
 
 ```
 

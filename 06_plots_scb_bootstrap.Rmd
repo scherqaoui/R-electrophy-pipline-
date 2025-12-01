@@ -41,7 +41,7 @@ specific_comp <- list(
 
   # Males — HRM
   #c("Males HRM Juvenile", "Males HRM Adolescent"),
-  c("Males HRM Juvenile", "Males HRM Adult")
+  #c("Males HRM Juvenile", "Males HRM Adult")
   #c("Males HRM Adolescent", "Males HRM Adult"),
 
   # Males — WT
@@ -201,7 +201,7 @@ dev.off()
 
 
 
-
+#ne pas comparer entre sexes
 
 
 
