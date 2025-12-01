@@ -9,8 +9,6 @@ date: "2025-11-21"
 
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
-
-
 #Function to compute mean & SEM (raw data)
 
 compute_mean_sem_raw <- function(mat) {
@@ -25,7 +23,6 @@ compute_mean_sem_raw <- function(mat) {
 
 
 # Compute global Y-limits for all groups (same scale)
-
 
 grid <- Time  # X-axis vector
 
