@@ -54,7 +54,7 @@ png("figures_mu_curve/mean_function_curves_males.png",
 
 par(mar = c(5, 4, 4, 10))
 
-ylim_mean_m <- range(unlist(mean_values_m))
+
 
 plot(grid, mean_values_m[[1]], type="n", ylim=ylim_mean,
      xlab="Time (sec)", ylab="fEPSP % of baseline",
@@ -90,7 +90,6 @@ png("figures_mu_curve/mean_function_curves_females.png",
 
 par(mar = c(5, 4, 4, 10))
 
-ylim_mean_f <- range(unlist(mean_values_f))
 
 plot(grid, mean_values_f[[1]], type="n", ylim=ylim_mean,
      xlab="Time (sec)", ylab="fEPSP % of baseline",
@@ -117,34 +116,33 @@ dev.off()
 
 ```{r WT mean curves}
 
-male_idx <- grep(" WT ", groups_names)
-mean_values_m <- mean_values_list[male_idx]
+WT_idx <- grep(" WT ", groups_names)
+mean_values_WT <- mean_values_list[WT_idx]
 
 
-groups_m_names <- groups_names[male_idx]
+groups_WT_names <- groups_names[WT_idx]
 
 
-colors_m <- colors[male_idx]
-lty_m    <- lty[male_idx]
+colors_WT <- colors[WT_idx]
+lty_WT    <- lty[WT_idx]
 
 png("figures_mu_curve/mean_function_curves_WT.png",
     width = 1500, height = 1000, res = 150)
 
 par(mar = c(5, 4, 4, 10))
 
-ylim_mean_m <- range(unlist(mean_values_m))
 
-plot(grid, mean_values_m[[1]], type="n", ylim=ylim_mean,
+plot(grid, mean_values_WT[[1]], type="n", ylim=ylim_mean,
      xlab="Time (sec)", ylab="fEPSP % of baseline",
      main="Mean function curve — WT")
 
-for (i in seq_along(mean_values_m)) {
-  lines(grid, mean_values_m[[i]], col=colors_m[i], lty=lty_m[i], lwd=2)
+for (i in seq_along(mean_values_WT)) {
+  lines(grid, mean_values_WT[[i]], col=colors_WT[i], lty=lty_WT[i], lwd=2)
 }
 
 grid()
 legend("topright", inset=c(-0.27,0), xpd=TRUE,
-       legend=groups_m_names, col=colors_m, lty=lty_m, lwd=2, bty="n", cex=0.8)
+       legend=groups_WT_names, col=colors_WT, lty=lty_WT, lwd=2, bty="n", cex=0.8)
 
 dev.off()
 
@@ -153,34 +151,33 @@ dev.off()
 
 ```{r HRM mean curves}
 
-female_idx <- grep(" HRM ", groups_names)
-mean_values_f <- mean_values_list[female_idx]
+HRM_idx <- grep(" HRM ", groups_names)
+mean_values_HRM <- mean_values_list[HRM_idx]
 
 
-groups_f_names <- groups_names[female_idx]
+groups_HRM_names <- groups_names[HRM_idx]
 
 
-colors_f <- colors[female_idx]
-lty_f    <- lty[female_idx]
+colors_HRM <- colors[HRM_idx]
+lty_HRM    <- lty[HRM_idx]
 
 png("figures_mu_curve/mean_function_curves_HRM.png",
     width = 1500, height = 1000, res = 150)
 
 par(mar = c(5, 4, 4, 10))
 
-ylim_mean_f <- range(unlist(mean_values_f))
 
-plot(grid, mean_values_f[[1]], type="n", ylim=ylim_mean,
+plot(grid, mean_values_HRM[[1]], type="n", ylim=ylim_mean,
      xlab="Time (sec)", ylab="fEPSP % of baseline",
      main="Mean function curve — HRM")
 
-for (i in seq_along(mean_values_f)) {
-  lines(grid, mean_values_f[[i]], col=colors_f[i], lty=lty_f[i], lwd=2)
+for (i in seq_along(mean_values_HRM)) {
+  lines(grid, mean_values_HRM[[i]], col=colors_HRM[i], lty=lty_HRM[i], lwd=2)
 }
 
 grid()
 legend("topright", inset=c(-0.27,0), xpd=TRUE,
-       legend=groups_f_names, col=colors_f, lty=lty_f, lwd=2, bty="n", cex=0.8)
+       legend=groups_HRM_names, col=colors_HRM, lty=lty_HRM, lwd=2, bty="n", cex=0.8)
 
 dev.off()
 
