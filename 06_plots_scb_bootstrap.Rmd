@@ -22,7 +22,7 @@ set.seed(1234)
 
 ###############################################################
 ### 1. Select manually the group comparisons of interest
-###    (flexible and avoids useless comparisons)
+###    (more flexible and avoids useless comparisons)
 ###############################################################
 
 specific_comp <- list(
@@ -41,7 +41,7 @@ specific_comp <- list(
 
   # Males — HRM
   #c("Males HRM Juvenile", "Males HRM Adolescent"),
-  #c("Males HRM Juvenile", "Males HRM Adult")
+  c("Males HRM Juvenile", "Males HRM Adult")
   #c("Males HRM Adolescent", "Males HRM Adult"),
 
   # Males — WT
@@ -88,9 +88,6 @@ scb_results <- setNames(
 ### Multiple-testing correction (Holm or BH)
 ###############################################################
 
-###############################################################
-### 3. Multiple-testing correction (Holm & BH)
-###############################################################
 
 # Extract raw p-values from all SCB results
 raw_pvals <- sapply(scb_results, function(res) res$p_value)
@@ -108,10 +105,8 @@ scb_summary_table <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# Print table in console
 print(scb_summary_table)
 
-# Save to CSV
 if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
 write.csv(scb_summary_table, "SCB_summary_stat/pvalues_corrected.csv", row.names = FALSE)
 
@@ -119,7 +114,7 @@ write.csv(scb_summary_table, "SCB_summary_stat/pvalues_corrected.csv", row.names
 
 
 ###############################################################
-### 3. Plotting function for SCBs (reused for each comparison)
+### 3. Function to plot SCBs comparaison
 ###############################################################
 
 plot_scb <- function(Time, scb, title) {
@@ -146,7 +141,7 @@ plot_scb <- function(Time, scb, title) {
 
 
 ###############################################################
-### 4. Plotting function for cohen's (reused for each comparison)
+### 4. Function to plot cohen's d function 
 ###############################################################
 
 plot_cohen_d <- function(Time, d_curve, title) {
@@ -165,15 +160,14 @@ plot_cohen_d <- function(Time, d_curve, title) {
 
 
 ###############################################################
-### 5. Plot all cohen's d
+### 5. Plot all cohen's d comparaison
 ###############################################################
-if (!dir.exists("figures_scb_comparaison")) dir.create("figures_scb_comparaison")
+if (!dir.exists("figures_cohen_d")) dir.create("figures_cohen_d")
 
 
 for (comparison in names(scb_results)) {
   
-  file_name <- paste0("figures_scb_comparaison/", groups_names[i], ".png")
-  
+  file_name <- paste0("figures_cohen_d/", groups_names[i], ".png")
   png(filename = file_name, width = 1200, height = 800, res = 150)
   
   plot_cohen_d(
@@ -186,17 +180,18 @@ for (comparison in names(scb_results)) {
 
 
 ###############################################################
-### 5. Plot all SCBs
+### 5. Plot all SCBs comparaison
 ###############################################################
 
 
-if (!dir.exists("figures_cohen_d")) dir.create("figures_cohen_d")
+if (!dir.exists("figures_scb_comparaison")) dir.create("figures_scb_compariason")
 
 
 for (comparison in names(scb_results)) {
-  file_name <- paste0("figures_cohen_d/", groups_names[i], ".png")
   
+  file_name <- paste0("figures_scb_comparaison/", groups_names[i], ".png")
   png(filename = file_name, width = 1200, height = 800, res = 150)
+  
   plot_scb(
     Time,
     scb_results[[comparison]],
@@ -207,7 +202,7 @@ for (comparison in names(scb_results)) {
 }
 
 ###############################################################
-### 5. Summary statistics for README or Supplement
+### 6. Summary statistics
 ###############################################################
 
 cat("\n===== SCB SUMMARY STATISTICS =====\n")
