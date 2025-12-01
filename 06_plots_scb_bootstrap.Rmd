@@ -81,6 +81,43 @@ scb_results <- setNames(
   sapply(specific_comp, function(pair) paste(pair, collapse = "_vs_"))
 )
 
+
+
+
+###############################################################
+### Multiple-testing correction (Holm or BH)
+###############################################################
+
+###############################################################
+### 3. Multiple-testing correction (Holm & BH)
+###############################################################
+
+# Extract raw p-values from all SCB results
+raw_pvals <- sapply(scb_results, function(res) res$p_value)
+
+# Apply corrections
+pvals_holm <- p.adjust(raw_pvals, method = "holm")
+pvals_BH   <- p.adjust(raw_pvals, method = "BH")
+
+# Create a summary table
+scb_summary_table <- data.frame(
+  Comparison = names(scb_results),
+  p_raw      = raw_pvals,
+  p_holm     = pvals_holm,
+  p_BH       = pvals_BH,
+  stringsAsFactors = FALSE
+)
+
+# Print table in console
+print(scb_summary_table)
+
+# Save to CSV
+if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
+write.csv(scb_summary_table, "SCB_summary_stat/pvalues_corrected.csv", row.names = FALSE)
+
+
+
+
 ###############################################################
 ### 3. Plotting function for SCBs (reused for each comparison)
 ###############################################################
@@ -179,10 +216,13 @@ for (comparison in names(scb_results)) {
   res <- scb_results[[comparison]]
   
   cat("\nComparison:", gsub("_", " ", comparison), "\n")
-  cat("  p-value:        ", round(res$p_value, 4), "\n")
-  cat("  z_alpha:        ", round(res$z_alpha, 4), "\n")
-  cat("  sup_obs:        ", round(res$sup_obs, 4), "\n")
-  cat("  mean(cohen's d):   ", round(res$d_mean, 4), "\n")
+  cat("  raw p-value:        ", round(res$p_value, 4), "\n")
+  cat("  Holm corrected:     ", round(pvals_holm[comparison], 4), "\n")
+  cat("  BH corrected:       ", round(pvals_BH[comparison], 4), "\n")
+  cat("  z_alpha:            ", round(res$z_alpha, 4), "\n")
+  cat("  sup_obs:            ", round(res$sup_obs, 4), "\n")
+  cat("  mean(cohen's d):    ", round(res$d_mean, 4), "\n")
+
 }
 
 
