@@ -18,9 +18,9 @@ set.seed(1234)
 # Suppose having n functional observations (each in fd_groups[[i]]).  we define:
 
 Genotype <- c("WT","HRM","WT","HRM", 
-          "WT","HRM","WT","HRM",
-          "WT","HRM","WT","HRM",
-          "WT","HRM","WT","HRM")
+              "WT","HRM","WT","HRM",
+              "WT","HRM","WT","HRM",
+              "WT","HRM","WT","HRM")
 
 Age  <- c("juv","juv","juv","juv",
           "ado","ado","ado","ado", 
@@ -41,10 +41,10 @@ dfs    <- res3$df
 eta2   <- res3$effect_size_eta
 
 # Choose which p-values to report:
-#pvals <- res3$pvalue_maxT    # <-- recommended
+pvals <- res3$pvalue_maxT    # <-- recommended
 #pvals <- res3$pvalue_unadj # (if we want unadjusted)
 #pvals <- res3$pvalue_BH    # (if we want FDR)
-p_value <- res3$pvalue_holm 
+#p_value <- res3$pvalue_holm #
 
 anova_table3 <- data.frame(
   Factor      = c("Genotype","Age","Sex","Genotype:Age","Genotype:Sex","Age:Sex","Genotype:Age:Sex"),
