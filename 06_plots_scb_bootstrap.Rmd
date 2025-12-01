@@ -241,8 +241,6 @@ dev.off()
 
 
 
-#ne pas comparer entre sexes
-
 
 
 
