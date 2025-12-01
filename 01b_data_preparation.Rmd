@@ -94,8 +94,6 @@ Common_smoothing <- function(all_data_groups, Time) {
 }
 
 
-
-
 # applying the common smoothing
 result_common <- Common_smoothing(all_groups, Time)
 
