@@ -19,13 +19,16 @@ set.seed(1234)
 
 Genotype <- c("WT","HRM","WT","HRM", 
           "WT","HRM","WT","HRM",
+          "WT","HRM","WT","HRM",
           "WT","HRM","WT","HRM")
 
 Age  <- c("juv","juv","juv","juv",
           "ado","ado","ado","ado", 
-          "adu", "adu","adu", "adu")
+          "adu", "adu","adu", "adu",
+          "age", "age","age", "age")
 
 Sex <- c("M","M","F","F",
+          "M","M","F","F",
           "M","M","F","F",
           "M","M","F","F")
 
