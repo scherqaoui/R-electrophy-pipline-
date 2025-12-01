@@ -71,28 +71,20 @@ matrix_age <- as.matrix(cleaned_data_age[, -1])
 
 all_groups <- list(
   # Juvenile
-  malesWTjuv    = matrix_juv[, 1:8],
-  malesHRMjuv   = matrix_juv[, 9:18],
-  femalesWTjuv  = matrix_juv[, 19:28],
-  femalesHRMjuv = matrix_juv[, 29:40],
+  malesWTjuv    = matrix_juv[, 1:8],  malesHRMjuv   = matrix_juv[, 9:18],
+  femalesWTjuv  = matrix_juv[, 19:28],femalesHRMjuv = matrix_juv[, 29:40],
 
   # Adolescent
-  malesWTado    = matrix_ado[, 1:10],
-  malesHRMado   = matrix_ado[, 11:18],
-  femalesWTado  = matrix_ado[, 19:28],
-  femalesHRMado = matrix_ado[, 29:37],
+  malesWTado    = matrix_ado[, 1:10], malesHRMado   = matrix_ado[, 11:18],
+  femalesWTado  = matrix_ado[, 19:28],femalesHRMado = matrix_ado[, 29:37],
 
   # Adult
-  malesWTadu    = matrix_adu[, 1:9],
-  malesHRMadu   = matrix_adu[, 10:18],
-  femalesWTadu  = matrix_adu[, 19:25],
-  femalesHRMadu  = matrix_adu[, 26:33],
+  malesWTadu    = matrix_adu[, 1:9],   malesHRMadu   = matrix_adu[, 10:18],
+  femalesWTadu  = matrix_adu[, 19:25],femalesHRMadu  = matrix_adu[, 26:33],
   
   # Age
-  malesWTage    = matrix_age[, 1:6],
-  malesHRMage   = matrix_age[, 7:13],
-  femalesWTage  = matrix_age[, 14:19],
-  femalesHRMage  = matrix_age[, 20:25]
+  malesWTage    = matrix_age[, 1:6],   malesHRMage   = matrix_age[, 7:13],
+  femalesWTage  = matrix_age[, 14:19],femalesHRMage  = matrix_age[, 20:25]
   
 )
 
@@ -100,32 +92,25 @@ all_groups <- list(
 #Metadata
 
 groups_names <- c(
-  "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",  #Juvenile
+  "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",         #Juvenile
   "Males WT Adolescent","Males HRM Adolescent","Females WT Adolescent","Females HRM Adolescent", #Adolescent
-  "Males WT Adult","Males HRM Adult","Females WT Adult", "Females HRM Adult",  #Adult
-  "Males WT Aged", "Males HRM Aged", "Females WT Aged", "Females HRM Aged"  #Age
+  "Males WT Adult","Males HRM Adult","Females WT Adult", "Females HRM Adult",                    #Adult
+  "Males WT Aged", "Males HRM Aged", "Females WT Aged", "Females HRM Aged"                       #Age
   )
 
 
 
 colors <- c(
-    # Juvenile 
-   "#00427A","#00427A","#4F8FD3","#4F8FD3",  
-    # Adolescent 
-   "yellow3", "yellow3","#DC5700","#DC5700",  
-    # Adult 
-   "green3","green3","#1F7F1F","#1F7F1F",
-   #age
-   "red2","red","purple", "purple"
+    
+   "#00427A","#00427A","#4F8FD3","#4F8FD3",   # Juvenile 
+   "yellow3","yellow3","#DC5700","#DC5700",  # Adolescent 
+   "green3","green3","#1F7F1F","#1F7F1F",     # Adult
+   "red2","red","purple","purple"            #Aged
   
 )   
 
 
-lty <- c(1,2,1,2,
-         1,2,1,2,
-         1,2,1,2,
-         1,2,1,2
-         )
+lty <- c(1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2)
 
 
 
