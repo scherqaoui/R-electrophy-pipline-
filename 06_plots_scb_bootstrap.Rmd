@@ -11,7 +11,7 @@ date: "2025-11-21"
 ###  Goal: Compare selected groups using simultaneous confidence bands
 ###############################################################
 
-# Rendering dependencies
+
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
@@ -21,43 +21,65 @@ rmarkdown::render("06_scb_bootstrap.Rmd", envir = globalenv(), quiet = TRUE)
 set.seed(1234)
 
 ###############################################################
-### 1. Select manually the group comparisons of interest
-###    (more flexible and avoids useless comparisons)
+### 1. Selecting manually the group comparisons of interest
+###    (avoiding useless comparisons)
 ###############################################################
 
 specific_comp <- list(
   
-  #----- Geno comparisons: age fixed, sex fixed -----
-  #c("Males HRM Juvenile", "Males WT Juvenile")
-  #c("Females HRM Juvenile", "Females WT Juvenile"),
+  #--------------Genotypes comparisons: (age,sex) fixed -------------------
   
-  #c("Males HRM Adolescent", "Males WT Adolescent")
-  #c("Females HRM Adolescent", "Females WT Adolescent"),
+  #Juvenile
+  c("Males HRM Juvenile", "Males WT Juvenile"),
+  c("Females HRM Juvenile", "Females WT Juvenile"),
   
-  #c("Males HRM Adult", "Males WT Adult"),
-  #c("Females HRM Adult", "Females WT Adult"),
+  #Adolescent
+  c("Males HRM Adolescent", "Males WT Adolescent"),
+  c("Females HRM Adolescent", "Females WT Adolescent"),
+  
+  #Adult
+  c("Males HRM Adult", "Males WT Adult"),
+  c("Females HRM Adult", "Females WT Adult"),
+  
+  #Age
+  c("Males HRM Age", "Males WT Age"),
+  c("Females HRM Age", "Females WT Age"),
+  
 
-  #----- Development comparisons: sex fixed, genotype fixed -----
+  #--------- Developmental stages comparisons: (sex,genotype) fixed ---------
 
-  # Males — HRM
-  #c("Males HRM Juvenile", "Males HRM Adolescent"),
-  c("Males HRM Juvenile", "Males HRM Adult")
-  #c("Males HRM Adolescent", "Males HRM Adult"),
+  # Males - HRM
+  c("Males HRM Juvenile",   "Males HRM Adolescent"),
+  c("Males HRM Juvenile",   "Males HRM Adult"),
+  c("Males HRM Juvenile",   "Males HRM Age"),
+  c("Males HRM Adolescent", "Males HRM Adult"),
+  c("Males HRM Adolescent", "Males HRM Age"),
+  c("Males HRM Adult",      "Males HRM Age"),
 
-  # Males — WT
-  #c("Males WT Juvenile", "Males WT Adolescent"),
-  #c("Males WT Juvenile", "Males WT Adult"),
-  #c("Males WT Adolescent", "Males WT Adult"),
+  # Males - WT
+  c("Males WT Juvenile",    "Males WT Adolescent"),
+  c("Males WT Juvenile",    "Males WT Adult"),
+  c("Males WT Juvenile",    "Males WT Age"),
+  c("Males WT Adolescent",  "Males WT Adult"),
+  c("Males WT Adolescent",  "Males WT Age"),
+  c("Males WT Adult",       "Males WT Age"),
+  
 
-  # Females — HRM
-  #c("Females HRM Juvenile", "Females HRM Adolescent"),
-  #c("Females HRM Juvenile", "Females HRM Adult"),
-  #c("Females HRM Adolescent", "Females HRM Adult"),
+  # Females - HRM
+  c("Females HRM Juvenile",    "Females HRM Adolescent"),
+  c("Females HRM Juvenile",    "Females HRM Adult"),
+  c("Females HRM Juvenile",    "Females HRM Age"),
+  c("Females HRM Adolescent",  "Females HRM Adult"),
+  c("Females HRM Adolescent",  "Females HRM Age"),
+  c("Females HRM Adult",       "Females HRM Age"),
 
-  # Females — WT
-  #c("Females WT Juvenile", "Females WT Adolescent"),
-  #c("Females WT Juvenile", "Females WT Adult"),
-  #c("Females WT Adolescent", "Females WT Adult")
+  # Females - WT
+  c("Females WT Juvenile",     "Females WT Adolescent"),
+  c("Females WT Juvenile",     "Females WT Adult"),
+  c("Females WT Juvenile",     "Females WT Age"),
+  c("Females WT Adolescent",   "Females WT Adult"),
+  c("Females WT Adolescent",   "Females WT Age"),
+  c("Females WT Adult",        "Females WT Age")
 )
 
 ###############################################################
