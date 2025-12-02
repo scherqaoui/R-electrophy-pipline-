@@ -95,7 +95,7 @@ groups_names <- c(
   "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",         #Juvenile
   "Males WT Adolescent","Males HRM Adolescent","Females WT Adolescent","Females HRM Adolescent", #Adolescent
   "Males WT Adult","Males HRM Adult","Females WT Adult", "Females HRM Adult",                    #Adult
-  "Males WT Aged", "Males HRM Aged", "Females WT Aged", "Females HRM Aged"                       #Age
+  "Males WT Aged", "Males HRM Aged", "Females WT Aged", "Females HRM Aged"                           #Age
   )
 
 
