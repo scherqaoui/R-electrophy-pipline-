@@ -65,6 +65,21 @@ anova_table3 <- data.frame(
 
 print(anova_table3)
 
+
+library(gridExtra)
+library(grid)
+
+if (!dir.exists("summary_stat_Fanova")) dir.create("summary_stat_Fanova")
+
+png("summary_stat_Fanova/anova_table3.png", width = 1000, height = 800, res = 150)
+grid.newpage()
+grid.table(anova_table3, rows = NULL)
+dev.off()
+
+
+
+
+
 ```
 
 
