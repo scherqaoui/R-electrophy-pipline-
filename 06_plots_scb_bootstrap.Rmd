@@ -238,33 +238,37 @@ for (comparison in names(scb_results)) {
 ###############################################################
 if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
 
-# Capture printed text into a variable
-summary_text <- capture.output({
-
-  cat("\n===== SCB SUMMARY STATISTICS =====\n")
-
-  for (comparison in names(scb_results)) {
-    res <- scb_results[[comparison]]
-    
-    cat("\nComparison:", gsub("_", " ", comparison), "\n")
-    cat("  raw p-value:        ", round(res$p_value, 4), "\n")
-    cat("  Holm corrected:     ", round(pvals_holm[comparison], 4), "\n")
-    cat("  BH corrected:       ", round(pvals_BH[comparison], 4), "\n")
-    cat("  Bonferroni corrected:       ", round(pvals_Bonferroni[comparison], 4), "\n")
-    cat("  z_alpha:            ", round(res$z_alpha, 4), "\n")
-    cat("  sup_obs:            ", round(res$sup_obs, 4), "\n")
-    cat("  mean(cohen's d):    ", round(res$d_mean, 4), "\n")
-  }
-
-})
 
 
-# Save as PNG
-png("SCB_summary_stat/SCB_summary_statistics.png", width = 1600, height = 1200, res = 150)
-grid.newpage()
-grid.text(paste(summary_text, collapse = "\n"),
-          x = 0.02, y = 1, just = c("left", "top"),
-          gp = gpar(fontsize = 12))
+library(gridExtra)
+library(grid)
+
+summary_df <- data.frame(
+  Comparison = names(scb_results),
+  p_raw = sapply(scb_results, function(x) round(x$p_value,4)),
+  p_Holm = round(pvals_holm,4),
+  p_BH = round(pvals_BH,4),
+  p_Bonf = round(pvals_Bonferroni,4),
+  z_alpha = sapply(scb_results, function(x) round(x$z_alpha,4)),
+  sup_obs = sapply(scb_results, function(x) round(x$sup_obs,4)),
+  d_mean = sapply(scb_results, function(x) round(x$d_mean,4))
+)
+
+if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
+
+
+lines_per_page <- 15  
+n_pages <- ceiling(nrow(summary_df)/lines_per_page)
+
+pdf("SCB_summary_stat/SCB_summary_statistics.pdf", width = 14, height = 8)
+
+for (i in 1:n_pages) {
+  start_row <- (i-1)*lines_per_page + 1
+  end_row <- min(i*lines_per_page, nrow(summary_df))
+  grid.newpage()
+  grid.table(summary_df[start_row:end_row, ], rows = NULL)
+}
+
 dev.off()
 
 
