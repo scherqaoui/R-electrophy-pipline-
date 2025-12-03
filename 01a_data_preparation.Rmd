@@ -28,27 +28,43 @@ data_age <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx"
 #Removes unused rows/columns
 clean_data <- function(data, time_min, time_max, drop_cols, method = c("linear", "spline")) {
   method <- match.arg(method)
+  
+  #  Remove specified columns
+  drop_cols <- drop_cols[drop_cols <= ncol(data)]
   data <- data[, -drop_cols]
-  colnames(data) <- as.character(unlist(data[5, ]))
+  
+  #  Use row 5 as header
+  new_names <- as.character(unlist(data[5, ]))
+  new_names <- make.names(new_names, unique = TRUE)
+  colnames(data) <- new_names
+  
+  # Remove header rows
   data <- data[-c(1:6), ]
   colnames(data)[1] <- "Time"
-  data$Time <- as.numeric(data$Time)
-  data[-1] <- lapply(data[-1], as.numeric)
   
+  # Convert Time to numeric
+  data$Time <- suppressWarnings(as.numeric(data$Time))
   
-  data <- data %>% filter(Time >= time_min & Time <= time_max)
+  # Clean non-numeric symbols before numeric conversion
+  data[-1] <- lapply(data[-1], function(x) {
+    x <- gsub(",", ".", x)                   # replace commas
+    x[x %in% c("", " ", "NA", "na", "-", "--")] <- NA
+    suppressWarnings(as.numeric(x))
+  })
   
-  # Replace NA by interpolation
+  # Keep time window
+  data <- data %>% filter(Time >= time_min, Time <= time_max)
+  
+  # Interpolate NA
   data[-1] <- lapply(data[-1], function(x) {
     if (method == "linear") {
-      na.approx(x, x = data$Time, na.rm = FALSE, rule = 2)  # linear interpolation
+      na.approx(x, x = data$Time, na.rm = FALSE, rule = 2)
     } else {
-      na.spline(x, x = data$Time)                # spline interpolation
+      na.spline(x, x = data$Time)
     }
   })
   
   return(data)
-
 }
 
 
@@ -115,7 +131,6 @@ lty <- c(1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2)
 
 
 ```
-
 
 
 
