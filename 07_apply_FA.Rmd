@@ -41,10 +41,11 @@ dfs    <- res3$df
 eta2   <- res3$effect_size_eta
 
 # Choose which p-values to report:
-pvals <- res3$pvalue_maxT    # <-- recommended
 #pvals <- res3$pvalue_unadj # (if we want unadjusted)
+pvals <- res3$pvalue_maxT    # <-- recommended
 #pvals <- res3$pvalue_BH    # (if we want FDR)
 #p_value <- res3$pvalue_holm #
+
 
 anova_table3 <- data.frame(
   Factor      = c("Genotype","Age","Sex","Genotype:Age","Genotype:Sex","Age:Sex","Genotype:Age:Sex"),
