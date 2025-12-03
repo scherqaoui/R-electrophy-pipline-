@@ -18,28 +18,28 @@ rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
 
 Common_smoothing <- function(all_data_groups, Time) {
 
-  # --------------- 0. Préparation des données ---------------
+  # --------------- 0. all data ---------------
   all_data_combined <- do.call(cbind, all_data_groups)
   y_mean_raw <- rowMeans(all_data_combined, na.rm = TRUE)
 
-  # Grid très fin pour stabiliser les dérivées
+  
   grid <- seq(min(Time), max(Time), length.out = 500)
 
-  # ---------------- 1. Lissage très léger du signal global  ----------------
-  # Pré-lissage : seulement pour calculer les noeuds
+  # ---------------- 1. preliminary smoothing to the global signal  ----------------
+  # Pre-smoothing : to compute knots
   basis_tmp <- create.bspline.basis(range(Time), nbasis = 4, norder = 4)
   fdPar_tmp <- fdPar(basis_tmp, Lfdobj = 2, lambda = 8)
   smooth_tmp <- smooth.basis(Time, y_mean_raw, fdPar_tmp)$fd
   y_mean_smooth <- eval.fd(Time, smooth_tmp)
 
-  # ---------------- 2. Estimation robuste des noeuds ----------------
+  # ---------------- 2. Knots estimation  ----------------
   dy  <- diff(y_mean_smooth) / diff(Time)
   d2y <- diff(dy) / diff(Time[-1])
 
   w <- abs(d2y)
   w <- w / sum(w)
 
-  nbasis <- 12       # (anciennement 12 → amélioration majeure)
+  nbasis <- 12       
   norder <- 4
   nbreaks <- nbasis - norder + 2
 
@@ -51,7 +51,7 @@ Common_smoothing <- function(all_data_groups, Time) {
 
   basis <- create.bspline.basis(range(Time), norder = norder, breaks = breaks)
 
-  # ---------------- 3. Sélection améliorée de lambda via GCV----------------
+  # ---------------- 3. Lambda selection via GCV----------------
   lambda_values <- 10^seq(-1, 3, length.out = 500)
 
   gcv <- sapply(lambda_values, function(lambda) {
@@ -60,13 +60,13 @@ Common_smoothing <- function(all_data_groups, Time) {
     mean(sm$gcv, na.rm = TRUE)
   })
 
-  # Lissage GCV → monotonic smoothing
+  #  GCV smoothing, opt lambda
   gcv_smoothed <- stats::smooth.spline(log10(lambda_values), gcv, spar = 0.6)$y
 
   lambda_opt <- lambda_values[ which.min(gcv_smoothed) ]
 
 
-  # ---------------- 4. Lissage final de chaque courbe ----------------
+  # ---------------- 4. Final smoothing of each curve ----------------
   fd_list <- lapply(all_data_groups, function(group) {
 
     coef_list <- lapply(seq_len(ncol(group)), function(k) {
@@ -80,7 +80,7 @@ Common_smoothing <- function(all_data_groups, Time) {
   })
 
 
-  # ---------------- 5. Sortie complète ----------------
+  
   return(list(
     fd_list = fd_list,
     basis = basis,
