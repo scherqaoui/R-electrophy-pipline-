@@ -86,7 +86,7 @@ dev.off()
 
 
 
-```{r}
+```{r Fanova three phases}
 
 
 library(fda)
