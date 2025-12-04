@@ -4,7 +4,7 @@ output: html_document
 date: "2025-11-21"
 ---
 
-```{r }
+```{r Global SCB comparaison}
 
 ###############################################################
 ###  MODULE  — SCB Bootstrap Comparisons
@@ -132,6 +132,7 @@ scb_summary_table <- data.frame(
 
 print(scb_summary_table)
 
+library(gridExtra)
 library(grid)
 if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
 
@@ -177,15 +178,15 @@ plot_scb <- function(Time, scb, title) {
 ###############################################################
 
 plot_cohen_d <- function(Time, d_curve, title) {
-  plot(Time, d_curve, type = "l", lwd = 2, col = "purple",
+  plot(Time, abs(d_curve), type = "l", lwd = 2, col = "purple",
        xlab = "Time (sec)", ylab = "Cohen's d(t)",
-       main = paste("Cohen's d(t) -", title))
+       main = paste("Cohen's |d(t)| -", title))
   abline(h = 0, col = "red", lty = 2)
-  abline(h = c(0.2, 0.5, 0.8), col = "gray", lty = 3)
+  abline(h = c(0.2, 0.5, 0.8), col = c("blue", "orange","green"), lty = 3)
   legend("topright",
          legend = c("d(t)", "0.2 small", "0.5 medium", "0.8 large"),
-         col = c("purple", "gray", "gray", "gray"),
-         lty = c(1, 3, 3, 3),
+         col = c("purple", "blue", "orange", "green"),
+         lty = c(1, 2, 3, 4),
          cex = 0.7, bty = "n")
 }
 
@@ -277,6 +278,274 @@ dev.off()
 
 
 
+```{r Three phases SCB comparaison}
+
+###############################################################
+###  MODULE  — SCB Bootstrap Comparisons at three phases
+###  Goal: Compare selected groups using simultaneous confidence bands on three phases
+###############################################################
+
+set.seed(1234)
+
+phase1_idx <- which(Time >= 1   & Time <= 360)
+phase2_idx <- which(Time >= 361 & Time <= 1740)
+phase3_idx <- which(Time >= 1741 & Time <= 2400)
+
+Time_phases <- list(
+  Phase1 = Time[phase1_idx],
+  Phase2 = Time[phase2_idx],
+  Phase3 = Time[phase3_idx]
+)
+
+
+
+##############################################################################
+###########################Three phases comp ##################################
+###############################################################################
+
+#------Computing comparaisons-----------
+
+scb_results_phases <- list()
+
+for (phase_name in names(Time_phases)) {
+  
+  Time_subset <- Time_phases[[phase_name]]
+  
+  cat("\n===== Computing SCB for", phase_name, "=====\n")
+  
+  scb_results_phases[[phase_name]] <- setNames(
+    lapply(specific_comp, function(pair) {
+      group1 <- pair[1]
+      group2 <- pair[2]
+      
+      cat("  -", group1, "vs", group2, "\n")
+      
+      Bootstrap_scb_difference(
+        fd_groups[[group1]],
+        fd_groups[[group2]],
+        n_bootstrap = 1000,
+        Time = Time_subset
+      )
+    }),
+    sapply(specific_comp, function(pair) paste(pair, collapse = "_vs_"))
+  )
+}
+
+#------Plot Computing comparaisons-----------
+
+plot_scb_three_phases <- function(
+  Time1, scb1,
+  Time2, scb2,
+  Time3, scb3,
+  title = "SCB Comparison (3 phases)"
+){
+  
+  ymin <- min(c(scb1$lower, scb2$lower, scb3$lower))
+  ymax <- max(c(scb1$upper, scb2$upper, scb3$upper))
+  xmin <- min(c(Time1, Time2, Time3))
+  xmax <- max(c(Time1, Time2, Time3))
+  
+  
+  plot(Time1, scb1$mean, type="n",
+       ylim=c(ymin, ymax),
+       xlim=c(xmin, xmax),
+       xlab="Time (sec)", ylab="Mean Difference",
+       main=title)
+  
+  # Phase 1 
+  polygon(
+    c(Time1, rev(Time1)),
+    c(scb1$lower, rev(scb1$upper)),
+    col=rgb(0,0,1,0.25), border=NA
+  )
+  lines(Time1, scb1$mean, col="blue", lwd=2)
+  lines(Time1, scb1$lower, col="blue", lty=2)
+  lines(Time1, scb1$upper, col="blue", lty=2)
+  
+  # Phase 2 
+  polygon(
+    c(Time2, rev(Time2)),
+    c(scb2$lower, rev(scb2$upper)),
+    col=rgb(1,0.5,0,0.25), border=NA
+  )
+  lines(Time2, scb2$mean, col="orange", lwd=2)
+  lines(Time2, scb2$lower, col="orange", lty=2)
+  lines(Time2, scb2$upper, col="orange", lty=2)
+  
+  # Phase 3 
+  polygon(
+    c(Time3, rev(Time3)),
+    c(scb3$lower, rev(scb3$upper)),
+    col=rgb(0,0.6,0,0.25), border=NA
+  )
+  lines(Time3, scb3$mean, col="darkgreen", lwd=2)
+  lines(Time3, scb3$lower, col="darkgreen", lty=2)
+  lines(Time3, scb3$upper, col="darkgreen", lty=2)
+  
+  
+  abline(h=0, col="red", lty=2)
+  
+  legend("bottomright",
+         legend=c(
+           "Phase 1 (1–360s)",
+           "Phase 2 (361–1740s)",
+           "Phase 3 (1741–2400s)"
+         ),
+         col=c("blue","orange","darkgreen"),
+         lwd=2, bty="n")
+}
+
+
+#------Save Computing comparaisons-----------
+
+dir.create("figures_scb_three_phases", showWarnings = FALSE)
+
+for (comparison in names(scb_results_phases$Phase1)) {
+  
+  png(
+    filename = paste0("figures_scb_three_phases/", comparison, "_3phases.png"),
+    width = 1500, height = 900, res = 150
+  )
+  
+  plot_scb_three_phases(
+    Time_phases$Phase1,
+    scb_results_phases$Phase1[[comparison]],
+    
+    Time_phases$Phase2,
+    scb_results_phases$Phase2[[comparison]],
+    
+    Time_phases$Phase3,
+    scb_results_phases$Phase3[[comparison]],
+    
+    title = paste("SCB Comparison for", gsub("_", " ", comparison),
+                  "- (Three Time Phases)")
+  )
+  
+  dev.off()
+}
+
+
+
+##############################################################################
+#######################Three phases cohen's d curves##########################
+###############################################################################
+
+#------Computing cohen's d curves-----------
+
+cohen_d_phases <- list()
+
+for (phase_name in names(Time_phases)) {
+  Time_subset <- Time_phases[[phase_name]]
+
+  cohen_d_phases[[phase_name]] <- lapply(
+    scb_results_phases[[phase_name]],
+    function(res) res$d_curve   # ← déjà correct !
+  )
+  
+  names(cohen_d_phases[[phase_name]]) <- names(scb_results_phases[[phase_name]])
+}
+
+#------Plot cohen's d curves-----------
+
+plot_cohen_three_phases <- function(
+  Time1, d1,
+  Time2, d2,
+  Time3, d3,
+  title="Cohen's d (3 phases)"
+){
+  ymax <- max(abs(c(d1, d2, d3)))
+
+  plot(Time1, abs(d1), type="n",
+       ylim=c(0, ymax),
+       xlim=c(min(Time1), max(Time3)),
+       xlab="Time (s)", ylab="|Cohen's d|",
+       main=title)
+
+  lines(Time1, abs(d1), col="blue", lwd=2)
+  lines(Time2, abs(d2), col="orange", lwd=2)
+  lines(Time3, abs(d3), col="darkgreen", lwd=2)
+
+  abline(h=c(0.2, 0.5, 0.8), col="gray40", lty=3)
+
+  legend("topright",
+         legend=c("Phase1","Phase2","Phase3"),
+         col=c("blue","orange","darkgreen"), lwd=2, bty="n")
+}
+
+
+#------Save cohen's d curves plots-----------
+
+dir.create("figures_cohen_d_three_phases", showWarnings = FALSE)
+
+for (comparison in names(cohen_d_phases$Phase1)) {
+  
+  png(
+    filename = paste0("figures_cohen_d_three_phases/", comparison, "_3phases.png"),
+    width = 1500, height = 900, res = 150
+  )
+  
+  plot_cohen_three_phases(
+    Time_phases$Phase1, cohen_d_phases$Phase1[[comparison]],
+    Time_phases$Phase2, cohen_d_phases$Phase2[[comparison]],
+    Time_phases$Phase3, cohen_d_phases$Phase3[[comparison]],
+    title = paste("Cohen's d for", gsub("_", " ", comparison))
+  )
+  
+  dev.off()
+}
+
+
+
+##############################################################################
+#######################SCB's summary statitics##########################
+###############################################################################
+
+library(gridExtra)
+library(grid)
+dir.create("SCB_summary_statistics_three_phases", showWarnings = FALSE)
+
+
+summary_phases <- list()
+
+for (phase_name in names(scb_results_phases)) {
+
+  scb_list <- scb_results_phases[[phase_name]]
+
+  raw_pvals <- sapply(scb_list, function(x) x$p_value)
+  
+  summary_df <- data.frame(
+    Phase = phase_name,
+    Comparison = names(scb_list),
+    p_raw = round(raw_pvals, 5),
+    p_Holm = round(p.adjust(raw_pvals, method="holm"), 5),
+    p_BH = round(p.adjust(raw_pvals, method="BH"), 5),
+    p_Bonf = round(p.adjust(raw_pvals, method="bonferroni"), 5),
+    z_alpha = round(sapply(scb_list, function(x) x$z_alpha), 4),
+    sup_obs = round(sapply(scb_list, function(x) x$sup_obs), 4),
+    d_mean = round(sapply(scb_list, function(x) x$d_mean), 4),
+    stringsAsFactors = FALSE
+  )
+  
+  summary_phases[[phase_name]] <- summary_df
+}
+
+summary_all_phases <- do.call(rbind, summary_phases)
+
+
+lines_per_page <- 15  
+n_pages <- ceiling(nrow(summary_all_phases)/lines_per_page)
+
+pdf("SCB_summary_statistics_three_phases/SCB_summary_statistics.pdf", width = 14, height = 8)
+
+for (i in 1:n_pages) {
+  start_row <- (i-1)*lines_per_page + 1
+  end_row <- min(i*lines_per_page, nrow(summary_all_phases))
+  grid.newpage()
+  grid.table(summary_all_phases[start_row:end_row, ], rows = NULL)
+}
+
+dev.off()
+```
 
 
 
