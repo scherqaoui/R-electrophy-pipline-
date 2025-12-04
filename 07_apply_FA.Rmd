@@ -86,6 +86,122 @@ dev.off()
 
 
 
+```{r}
+
+
+library(fda)
+library(gridExtra)
+library(grid)
+
+#-------------------------------------------------------------------------------
+# Helper function: evaluate fd objects on a given time grid
+#-------------------------------------------------------------------------------
+fd_phase_eval <- function(fd_list, Time_grid) {
+  lapply(fd_list, function(fd) {
+    range_fd <- fd$basis$rangeval
+    Time_grid <- Time_grid[Time_grid >= range_fd[1] & Time_grid <= range_fd[2]]
+    eval.fd(Time_grid, fd)
+  })
+}
+
+#-------------------------------------------------------------------------------
+# Define time phases 
+#-------------------------------------------------------------------------------
+define_time_phases <- function(fd_example, n_points_per_phase = 100) {
+  range_fd <- fd_example$basis$rangeval
+  total_length <- diff(range_fd)
+  Time_phases <- list(
+    Phase1 = seq(range_fd[1], range_fd[1] + total_length/3, length.out = n_points_per_phase),
+    Phase2 = seq(range_fd[1] + total_length/3, range_fd[1] + 2*total_length/3, length.out = n_points_per_phase),
+    Phase3 = seq(range_fd[1] + 2*total_length/3, range_fd[2], length.out = n_points_per_phase)
+  )
+  return(Time_phases)
+}
+
+#-------------------------------------------------------------------------------
+# Run 3-way functional ANOVA on each phase
+#-------------------------------------------------------------------------------
+run_anova_phases <- function(fd_list, Genotype, Age, Sex, P = 2000) {
+  
+  Time_phases <- define_time_phases(fd_list[[1]])
+  
+  results <- list()
+  
+  for (phase_name in names(Time_phases)) {
+    cat("===== ANOVA 3-way for", phase_name, "=====\n")
+    grid <- Time_phases[[phase_name]]
+    
+    fd_phase_vals <- fd_phase_eval(fd_list, grid)
+    
+    res3 <- fanova3_FP(fd_list, Genotype, Age, Sex, P = P)
+    
+    fstats <- res3$stat
+    dfs    <- res3$df
+    eta2   <- res3$effect_size_eta
+    pvals  <- res3$pvalue_maxT
+    
+    anova_table3 <- data.frame(
+      Factor      = c("Genotype","Age","Sex","Genotype:Age","Genotype:Sex","Age:Sex","Genotype:Age:Sex"),
+      F_stat      = c(fstats["FG"], fstats["FA"], fstats["FS"],
+                      fstats["FAG"], fstats["FGS"], fstats["FAS"],
+                      fstats["FGAS"]),
+      p_value     = c(pvals["FG"],  pvals["FA"],  pvals["FS"],
+                      pvals["FAG"], pvals["FGS"], pvals["FAS"],
+                      pvals["FGAS"]),
+      df_numer    = c(dfs["dfG"],   dfs["dfA"],   dfs["dfS"],
+                      dfs["dfAG"],  dfs["dfGS"],  dfs["dfAS"],
+                      dfs["dfGAS"]),
+      eta2_effect = c(eta2["eta2_G"], eta2["eta2_A"], eta2["eta2_S"],
+                      eta2["eta2_AG"], eta2["eta2_GS"], eta2["eta2_AS"],
+                      eta2["eta2_GAS"])
+    )
+    
+    print(anova_table3)
+    
+    
+    if (!dir.exists("summary_stat_Fanova")) dir.create("summary_stat_Fanova")
+    png(paste0("summary_stat_Fanova/anova_table3_", phase_name, ".png"), 
+        width = 1000, height = 800, res = 150)
+    grid.newpage()
+    grid.table(anova_table3, rows = NULL)
+    dev.off()
+    
+    results[[phase_name]] <- list(
+      anova_table = anova_table3,
+      raw_results = res3
+    )
+  }
+  
+  return(results)
+}
+
+#-------------------------------------------------------------------------------
+# Example of running ANOVA on 3 phases
+#-------------------------------------------------------------------------------
+set.seed(1234)
+
+# Define factors
+Genotype <- c("WT","HRM","WT","HRM", 
+              "WT","HRM","WT","HRM",
+              "WT","HRM","WT","HRM",
+              "WT","HRM","WT","HRM")
+Age  <- c("juv","juv","juv","juv",
+          "ado","ado","ado","ado", 
+          "adu", "adu","adu", "adu",
+          "age", "age","age", "age")
+Sex <- c("M","M","F","F",
+         "M","M","F","F",
+         "M","M","F","F",
+         "M","M","F","F")
+
+# Run ANOVA on all phases
+anova_results <- run_anova_phases(fd_groups, Genotype, Age, Sex, P = 2000)
+
+```
+
+
+
+
 
 
 
