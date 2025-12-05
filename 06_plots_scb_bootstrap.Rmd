@@ -28,20 +28,76 @@ set.seed(1234)
 groups <- names(fd_groups)
 all_comparisons <- combn(groups, 2, simplify = FALSE)
 
-# sex and age fixed
+
+#selected_age <- "Juvenile"  # or NULL to not filter by age
 
 specific_comp <- Filter(function(x) {
-  sex1 <- strsplit(x[1], " ")[[1]][1]
-  sex2 <- strsplit(x[2], " ")[[1]][1]
+  parts1 <- strsplit(x[1], " ")[[1]]
+  parts2 <- strsplit(x[2], " ")[[1]]
+  
+  sex1 <- parts1[1]
+  sex2 <- parts2[1]
+  
+  age1 <- parts1[length(parts1)]
+  age2 <- parts2[length(parts2)]
   
   same_sex <- sex1 == sex2
+  same_age <- if (is.null(selected_age)) TRUE else (age1 == selected_age && age2 == selected_age)
   
-  same_sex && (
-    (grepl("HRM Juvenile", x[1]) && grepl("WT Juvenile", x[2])) ||
-    (grepl("WT Juvenile", x[1]) && grepl("HRM Juvenile", x[2]))
+  same_sex && same_age && (
+    (grepl("HRM", x[1]) && grepl("WT", x[2])) ||
+    (grepl("WT", x[1]) && grepl("HRM", x[2]))
   )
 }, all_comparisons)
 
+
+
+
+
+# specific_comp <- Filter(function(x) {
+#   # Extract gen and age
+#   parts1 <- strsplit(x[1], " ")[[1]]
+#   parts2 <- strsplit(x[2], " ")[[1]]
+#   
+#   gen1 <- parts1[1]
+#   gen2 <- parts2[1]
+#   
+#   age1 <- parts1[length(parts1)]  # age last word
+#   age2 <- parts2[length(parts2)]
+#   
+#   same_gen <- gen1 == gen2
+#   same_age <- age1 == age2
+#   
+#   
+#   same_gen && same_age && (
+#     (grepl("Males", x[1]) && grepl("Females", x[2])) ||
+#     (grepl("Females", x[1]) && grepl("Males", x[2]))
+#   )
+# }, all_comparisons)
+
+
+
+
+# specific_comp <- Filter(function(x) {
+#   # Extract sexe and gen
+#   parts1 <- strsplit(x[1], " ")[[1]]
+#   parts2 <- strsplit(x[2], " ")[[1]]
+#   
+#   sex1 <- parts1[1]
+#   sex2 <- parts2[1]
+#   
+#   gen1 <- parts1[length(parts1)]  
+#   gen2 <- parts2[length(parts2)]
+#   
+#   same_sex <- sex1 == sex2
+#   same_gen <- gen1 == gen2
+#   
+#   
+#   same_sex && same_gen && (
+#     (grepl("Males", x[1]) && grepl("Females", x[2])) ||
+#     (grepl("Females", x[1]) && grepl("Males", x[2]))
+#   )
+# }, all_comparisons)
 
 
 
