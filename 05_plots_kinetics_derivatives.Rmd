@@ -92,6 +92,57 @@ for (i in seq_along(fd_groups)) {
 
 
 
+```{r}
+zoom_start <- 2300
+zoom_end   <- 2400
+
+# zoom index zone
+zoom_idx <- which(Time >= zoom_start & Time <= zoom_end)
+
+# Y-limits for zoom zone
+global_zoom_ymin <- min(sapply(all_1st_derivs, function(x) min(x[zoom_idx], na.rm = TRUE)))
+global_zoom_ymax <- max(sapply(all_1st_derivs, function(x) max(x[zoom_idx], na.rm = TRUE)))
+
+
+for (i in seq_along(fd_groups)) {
+  
+  file_name <- paste0("figures_1st_derivatives/1st_derivative_with_zoom_", legends[i], ".png")
+  png(file_name, width = 1600, height = 900, res = 150)
+  
+  par(mfrow = c(1, 2))
+  
+  #### --- 1) FULL GRAPH  ---
+  plot(
+    Time, all_1st_derivs[[i]], type = "l",
+    col = colors[i], lwd = 3, lty = lty[i],
+    ylim = c(ymin, ymax),   # <-- same scale for full signal
+    xlab = "Time (sec)", ylab = "Derivative",
+    main = paste("Full signal -", legends[i])
+  )
+  abline(h = 0, col = "red")
+  grid()
+  
+  #### --- 2) ZOOM GRAPH  ---
+  plot(
+    Time[zoom_idx], all_1st_derivs[[i]][zoom_idx], type = "l",
+    col = colors[i], lwd = 3, lty = lty[i],
+    ylim = c(global_zoom_ymin, global_zoom_ymax),   # <-- same scale for the zoom ones
+    xlab = "Time (sec)", ylab = "",
+    main = paste("Zoom", zoom_start, "-", zoom_end, "sec")
+  )
+  abline(h = 0, col = "red")
+  grid()
+  
+  dev.off()
+}
+
+
+
+```
+
+
+
+
 
 
 
