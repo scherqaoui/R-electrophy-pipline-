@@ -25,79 +25,102 @@ set.seed(1234)
 ###############################################################
 
 
-groups <- names(fd_groups)
-all_comparisons <- combn(groups, 2, simplify = FALSE)
-
-
-#selected_age <- "Juvenile"  # or NULL to not filter by age
-
-specific_comp <- Filter(function(x) {
-  parts1 <- strsplit(x[1], " ")[[1]]
-  parts2 <- strsplit(x[2], " ")[[1]]
+specific_comp <- list(
   
-  sex1 <- parts1[1]
-  sex2 <- parts2[1]
+  #--------------Genotypes comparisons: (age,sex) fixed -------------------
   
-  age1 <- parts1[length(parts1)]
-  age2 <- parts2[length(parts2)]
+  #Juvenile
+  c("Males HRM Juvenile", "Males WT Juvenile"),
+  c("Females HRM Juvenile", "Females WT Juvenile")
   
-  same_sex <- sex1 == sex2
-  same_age <- if (is.null(selected_age)) TRUE else (age1 == selected_age && age2 == selected_age)
+  #Adolescent
+  #c("Males HRM Adolescent", "Males WT Adolescent"),
+  #c("Females HRM Adolescent", "Females WT Adolescent"),
   
-  same_sex && same_age && (
-    (grepl("HRM", x[1]) && grepl("WT", x[2])) ||
-    (grepl("WT", x[1]) && grepl("HRM", x[2]))
-  )
-}, all_comparisons)
+  #Adult
+  #c("Males HRM Adult", "Males WT Adult"),
+  #c("Females HRM Adult", "Females WT Adult"),
+  
+  #Age
+  #c("Males HRM Aged", "Males WT Aged"),
+  #c("Females HRM Aged", "Females WT Aged"),
+  
+
+  
+  
+  #--------- Developmental stages comparisons: (sex,genotype) fixed ---------
+
+  # Males - HRM
+  #c("Males HRM Juvenile",   "Males HRM Adolescent"),
+  #c("Males HRM Juvenile",   "Males HRM Adult"),
+  #c("Males HRM Juvenile",   "Males HRM Aged"),
+  #c("Males HRM Adolescent", "Males HRM Adult"),
+  #c("Males HRM Adolescent", "Males HRM Aged"),
+  #c("Males HRM Adult",      "Males HRM Aged"),
+
+  # Males - WT
+  #c("Males WT Juvenile",    "Males WT Adolescent"),
+  #c("Males WT Juvenile",    "Males WT Adult"),
+  #c("Males WT Juvenile",    "Males WT Aged"),
+  #c("Males WT Adolescent",  "Males WT Adult"),
+  #c("Males WT Adolescent",  "Males WT Aged"),
+  #c("Males WT Adult",       "Males WT Aged"),
+  
+
+  # Females - HRM
+  #c("Females HRM Juvenile",    "Females HRM Adolescent"),
+  #c("Females HRM Juvenile",    "Females HRM Adult"),
+  #c("Females HRM Juvenile",    "Females HRM Aged"),
+  #c("Females HRM Adolescent",  "Females HRM Adult"),
+  #c("Females HRM Adolescent",  "Females HRM Aged"),
+  #c("Females HRM Adult",       "Females HRM Aged"),
+
+  # Females - WT
+  #c("Females WT Juvenile",     "Females WT Adolescent"),
+  #c("Females WT Juvenile",     "Females WT Adult"),
+  #c("Females WT Juvenile",     "Females WT Aged"),
+  #c("Females WT Adolescent",   "Females WT Adult"),
+  #c("Females WT Adolescent",   "Females WT Aged"),
+  #c("Females WT Adult",        "Females WT Aged")
+  
+  
+  
+  
+  #--------- Sexes comparaisons: (Age, genotype)fixed ---------
+  
+  #Juvenile
+  #c("Males WT Juvenile", "Females WT Juvenile"),
+  #c("Males HRM Juvenile", "Females HRM Juvenile"),
+  
+  #Adolescent
+  #c("Males WT Adolescent", "Females WT Adolescent"),
+  #c("Males HRM Adolescent", "Females HRM Adolescent"),
+  
+  #Adult
+  #c("Males WT Adult", "Females WT Adult"),
+  #c("Males HRM Adult", "Females HRM Adult"),
+  
+  #Age
+  #c("Males WT Aged", "Females WT Aged"),
+  #c("Males HRM Aged", "Females HRM Aged")
+  
+  
+)
 
 
 
 
 
-# specific_comp <- Filter(function(x) {
-#   # Extract gen and age
-#   parts1 <- strsplit(x[1], " ")[[1]]
-#   parts2 <- strsplit(x[2], " ")[[1]]
-#   
-#   gen1 <- parts1[1]
-#   gen2 <- parts2[1]
-#   
-#   age1 <- parts1[length(parts1)]  # age last word
-#   age2 <- parts2[length(parts2)]
-#   
-#   same_gen <- gen1 == gen2
-#   same_age <- age1 == age2
-#   
-#   
-#   same_gen && same_age && (
-#     (grepl("Males", x[1]) && grepl("Females", x[2])) ||
-#     (grepl("Females", x[1]) && grepl("Males", x[2]))
-#   )
-# }, all_comparisons)
 
 
 
 
-# specific_comp <- Filter(function(x) {
-#   # Extract sexe and gen
-#   parts1 <- strsplit(x[1], " ")[[1]]
-#   parts2 <- strsplit(x[2], " ")[[1]]
-#   
-#   sex1 <- parts1[1]
-#   sex2 <- parts2[1]
-#   
-#   gen1 <- parts1[length(parts1)]  
-#   gen2 <- parts2[length(parts2)]
-#   
-#   same_sex <- sex1 == sex2
-#   same_gen <- gen1 == gen2
-#   
-#   
-#   same_sex && same_gen && (
-#     (grepl("Males", x[1]) && grepl("Females", x[2])) ||
-#     (grepl("Females", x[1]) && grepl("Males", x[2]))
-#   )
-# }, all_comparisons)
+
+
+
+
+
+
 
 
 
@@ -148,6 +171,7 @@ dev.off()
 plot_scb <- function(Time, scb, title, global_min, global_max) {
   plot(Time, scb$mean, type = "l", col = "black", lwd = 2,
        ylim = c(global_min, global_max),
+       #ylim = range(c(scb$lower, scb$upper))
        xlab = "Time (sec)", ylab = "fEPSP Diff.",
        main = title, cex.main = 1.1)
   lines(Time, scb$lower, col = "blue", lty = 2)
@@ -258,10 +282,6 @@ dev.off()
 
 
 
-```{r}
-all_comparisons
-
-```
 
 
 
