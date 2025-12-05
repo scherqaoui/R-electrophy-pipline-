@@ -16,6 +16,9 @@ library(dplyr)
 library(tidyr)
 library(fdANOVA)
 library(zoo)
+library(gridExtra)
+library(grid)
+library(RColorBrewer)
 
 #Raw electrophysiology Excel sheets
 data_juv <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "juv")

@@ -7,7 +7,7 @@ date: "2025-11-21"
 ```{r Global SCB comparaison}
 
 ###############################################################
-###  MODULE  — SCB Bootstrap Comparisons
+###  MODULE  — SCB Bootstrap Comparisons and Cohen's d(t) Analysis Script
 ###  Goal: Compare selected groups using simultaneous confidence bands
 ###############################################################
 
@@ -21,105 +21,40 @@ rmarkdown::render("06_scb_bootstrap.Rmd", envir = globalenv(), quiet = TRUE)
 set.seed(1234)
 
 ###############################################################
-### 1. Selecting manually the group comparisons of interest
-###    (avoiding useless comparisons)
+### 1. Automatically generate comparisons
 ###############################################################
 
-specific_comp <- list(
-  
-  #--------------Genotypes comparisons: (age,sex) fixed -------------------
-  
-  #Juvenile
-  c("Males HRM Juvenile", "Males WT Juvenile"),
-  c("Females HRM Juvenile", "Females WT Juvenile"),
-  
-  #Adolescent
-  c("Males HRM Adolescent", "Males WT Adolescent"),
-  c("Females HRM Adolescent", "Females WT Adolescent"),
-  
-  #Adult
-  c("Males HRM Adult", "Males WT Adult"),
-  c("Females HRM Adult", "Females WT Adult"),
-  
-  #Age
-  c("Males HRM Aged", "Males WT Aged"),
-  c("Females HRM Aged", "Females WT Aged"),
-  
 
-  #--------- Developmental stages comparisons: (sex,genotype) fixed ---------
+groups <- names(fd_groups)
+all_comparisons <- combn(groups, 2, simplify = FALSE)
 
-  # Males - HRM
-  #c("Males HRM Juvenile",   "Males HRM Adolescent"),
-  #c("Males HRM Juvenile",   "Males HRM Adult"),
-  #c("Males HRM Juvenile",   "Males HRM Aged"),
-  #c("Males HRM Adolescent", "Males HRM Adult"),
-  #c("Males HRM Adolescent", "Males HRM Aged"),
-  #c("Males HRM Adult",      "Males HRM Aged"),
+# sex and age fixed
 
-  # Males - WT
-  #c("Males WT Juvenile",    "Males WT Adolescent"),
-  #c("Males WT Juvenile",    "Males WT Adult"),
-  #c("Males WT Juvenile",    "Males WT Aged"),
-  #c("Males WT Adolescent",  "Males WT Adult"),
-  #c("Males WT Adolescent",  "Males WT Aged"),
-  #c("Males WT Adult",       "Males WT Aged"),
+specific_comp <- Filter(function(x) {
+  sex1 <- strsplit(x[1], " ")[[1]][1]
+  sex2 <- strsplit(x[2], " ")[[1]][1]
   
-
-  # Females - HRM
-  #c("Females HRM Juvenile",    "Females HRM Adolescent"),
-  #c("Females HRM Juvenile",    "Females HRM Adult"),
-  #c("Females HRM Juvenile",    "Females HRM Aged"),
-  #c("Females HRM Adolescent",  "Females HRM Adult"),
-  #c("Females HRM Adolescent",  "Females HRM Aged"),
-  #c("Females HRM Adult",       "Females HRM Aged"),
-
-  # Females - WT
-  #c("Females WT Juvenile",     "Females WT Adolescent"),
-  #c("Females WT Juvenile",     "Females WT Adult"),
-  #c("Females WT Juvenile",     "Females WT Aged"),
-  #c("Females WT Adolescent",   "Females WT Adult"),
-  #c("Females WT Adolescent",   "Females WT Aged"),
-  #c("Females WT Adult",        "Females WT Aged")
+  same_sex <- sex1 == sex2
   
-  #--------- Sexes comparaisons: (Age, genotype)fixed ---------
-  
-  #Juvenile
-  c("Males WT Juvenile", "Females WT Juvenile"),
-  c("Males HRM Juvenile", "Females HRM Juvenile"),
-  
-  #Adolescent
-  c("Males WT Adolescent", "Females WT Adolescent"),
-  c("Males HRM Adolescent", "Females HRM Adolescent"),
-  
-  #Adult
-  c("Males WT Adult", "Females WT Adult"),
-  c("Males HRM Adult", "Females HRM Adult"),
-  
-  #Age
-  c("Males WT Aged", "Females WT Aged"),
-  c("Males HRM Aged", "Females HRM Aged")
-  
-  
-)
-
+  same_sex && (
+    (grepl("HRM Juvenile", x[1]) && grepl("WT Juvenile", x[2])) ||
+    (grepl("WT Juvenile", x[1]) && grepl("HRM Juvenile", x[2]))
+  )
+}, all_comparisons)
 
 
 
 
 ###############################################################
-### 2. Compute SCBs for selected comparisons
+### 2. Compute SCB for selected comparisons
 ###############################################################
 
 scb_results <- setNames(
   lapply(specific_comp, function(pair) {
-    group1 <- pair[1]
-    group2 <- pair[2]
-
-    cat("Computing SCB:", group1, "vs", group2, "\n")
-
+    cat("Computing SCB:", pair[1], "vs", pair[2], "\n")
     Bootstrap_scb_difference(
-      fd_groups[[group1]],
-      fd_groups[[group2]],
+      fd_groups[[pair[1]]],
+      fd_groups[[pair[2]]],
       n_bootstrap = 1000,
       Time = Time
     )
@@ -127,67 +62,45 @@ scb_results <- setNames(
   sapply(specific_comp, function(pair) paste(pair, collapse = "_vs_"))
 )
 
-
-
-
 ###############################################################
-### Multiple-testing correction (Holm or BH)
+### 3. Multiple-testing correction
 ###############################################################
 
-
-# Extract raw p-values from all SCB results
-#raw p-value already maxT corrected
 raw_pvals <- sapply(scb_results, function(res) res$p_value)
-
-# Apply corrections
 pvals_holm <- p.adjust(raw_pvals, method = "holm")
 pvals_BH   <- p.adjust(raw_pvals, method = "BH")
 pvals_Bonferroni <- p.adjust(raw_pvals, method = "bonferroni")
 
-# Create a summary table
 scb_summary_table <- data.frame(
   Comparison = names(scb_results),
-  p_raw      = raw_pvals,
-  p_holm     = pvals_holm,
-  p_BH       = pvals_BH,
-  p_Bonferroni = pvals_Bonferroni,
+  p_raw = round(raw_pvals,4),
+  p_Holm = round(pvals_holm,4),
+  p_BH = round(pvals_BH,4),
+  p_Bonferroni = round(pvals_Bonferroni,4),
   stringsAsFactors = FALSE
 )
 
-print(scb_summary_table)
-
-library(gridExtra)
-library(grid)
 if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
-
-
-png("SCB_summary_stat/SCB_summary_table.png",
-    width = 1600, height = 600, res = 150)
-
+png("SCB_summary_stat/SCB_summary_table.png", width = 1600, height = 600, res = 150)
 grid.table(scb_summary_table)
-
 dev.off()
 
-
-
 ###############################################################
-### 3. Function to plot SCBs comparaison
+### 4. Functions to plot SCB and Cohen's d(t)
 ###############################################################
 
-plot_scb <- function(Time, scb, title) {
+plot_scb <- function(Time, scb, title, global_min, global_max) {
   plot(Time, scb$mean, type = "l", col = "black", lwd = 2,
-       ylim = range(c(scb$lower, scb$upper)),
+       ylim = c(global_min, global_max),
        xlab = "Time (sec)", ylab = "fEPSP Diff.",
        main = title, cex.main = 1.1)
-
   lines(Time, scb$lower, col = "blue", lty = 2)
   lines(Time, scb$upper, col = "blue", lty = 2)
   abline(h = 0, col = "red", lty = 2)
-  abline(v = c(360, 1740), col = c("black","black"), lty = 3)
+  abline(v = c(360, 1740), col = "black", lty = 3)
   polygon(c(Time, rev(Time)),
           c(scb$lower, rev(scb$upper)),
           col = rgb(0.5, 0.5, 0, 0.3), border = NA)
-
   legend("bottomright",
          legend = c("Mean Diff.", "95% SCB"),
          col = c("black", "blue"),
@@ -195,19 +108,14 @@ plot_scb <- function(Time, scb, title) {
          cex = 0.7, bty = "n")
 }
 
-
-
-###############################################################
-### 4. Function to plot cohen's d function 
-###############################################################
-
-plot_cohen_d <- function(Time, d_curve, title) {
+plot_cohen_d <- function(Time, d_curve, title, global_max) {
   plot(Time, abs(d_curve), type = "l", lwd = 2, col = "purple",
-       xlab = "Time (sec)", ylab = "Cohen's d(t)",
-       main = paste("Cohen's |d(t)| -", title))
+       xlab = "Time (sec)", ylab = "Cohen's |d(t)|",
+       main = paste("Cohen's |d(t)| -", title),
+       ylim = c(0, global_max))
   abline(h = 0, col = "red", lty = 2)
-  abline(v = c(360, 1740), col = c("black","black"), lty = 3)
-  abline(h = c(0.2, 0.5, 0.8), col = c("blue", "orange","green"), lty = 3)
+  abline(v = c(360, 1740), col = "black", lty = 3)
+  abline(h = c(0.2, 0.5, 0.8), col = c("blue", "orange", "green"), lty = 3)
   legend("topright",
          legend = c("d(t)", "0.2 small", "0.5 medium", "0.8 large"),
          col = c("purple", "blue", "orange", "green"),
@@ -215,90 +123,137 @@ plot_cohen_d <- function(Time, d_curve, title) {
          cex = 0.7, bty = "n")
 }
 
+plot_all_cohen_same_graph <- function(Time, scb_results, global_max) {
+  comps <- names(scb_results)
+  n <- length(comps)
+  colors <- brewer.pal(min(n, 8), "Set1") 
+  if (n > 8) colors <- rainbow(n)
 
+  plot(Time, type = "n", ylim = c(0, global_max), xlab = "Time (sec)",
+       ylab = "Cohen's |d(t)|",
+       main = "Cohen's |d(t)| for all comparisons")
+  abline(h = 0, col = "red", lty = 2)
+  abline(v = c(360, 1740), col = "black", lty = 3)
+  abline(h = c(0.2, 0.5, 0.8), col = c("blue", "orange", "green"), lty = 3)
 
-###############################################################
-### 5. Plot all cohen's d comparaison
-###############################################################
-if (!dir.exists("figures_cohen_d")) dir.create("figures_cohen_d")
+  for (i in seq_along(comps)) {
+    lines(Time, abs(scb_results[[comps[i]]]$d_curve),
+          col = colors[i %% length(colors) + 1], lwd = 2)
+  }
 
-
-for (comparison in names(scb_results)) {
-  
-  file_name <- paste0("figures_cohen_d/", comparison, ".png")
-  png(filename = file_name, width = 1200, height = 800, res = 150)
-  
-  plot_cohen_d(
-    Time,
-    scb_results[[comparison]]$d_curve,
-    gsub("_", " ", comparison)
-  )
-  dev.off()
+  legend("topright", legend = comps, col = colors, lty = 1, lwd = 2, cex = 0.7, bty = "n")
 }
 
-
 ###############################################################
-### 5. Plot all SCBs comparaison
+### 5. Export SCB and Cohen's d figures
 ###############################################################
 
-
+if (!dir.exists("figures_cohen_d")) dir.create("figures_cohen_d")
+if (!dir.exists("figures_same_graph_cohen_d")) dir.create("figures_same_graph_cohen_d")
 if (!dir.exists("figures_scb_comparaison")) dir.create("figures_scb_comparaison")
 
+global_min_scb <- min(sapply(scb_results, function(res) min(res$lower, na.rm = TRUE)))
+global_max_scb <- max(sapply(scb_results, function(res) max(res$upper, na.rm = TRUE)))
+global_max_d <- max(sapply(scb_results, function(res) max(abs(res$d_curve), na.rm = TRUE)))
 
+# Individual SCB and Cohen's d
 for (comparison in names(scb_results)) {
-  
-  file_name <- paste0("figures_scb_comparaison/", comparison, ".png")
-  png(filename = file_name, width = 1200, height = 800, res = 150)
-  
-  plot_scb(
-    Time,
-    scb_results[[comparison]],
-    gsub("_", " ", comparison)
-  )
-  
+  png(paste0("figures_scb_comparaison/", comparison, ".png"), width = 1200, height = 800, res = 150)
+  plot_scb(Time, scb_results[[comparison]], gsub("_", " ", comparison), global_min_scb, global_max_scb)
+  dev.off()
+
+  png(paste0("figures_cohen_d/", comparison, ".png"), width = 1200, height = 800, res = 150)
+  plot_cohen_d(Time, scb_results[[comparison]]$d_curve, gsub("_", " ", comparison), global_max_d)
   dev.off()
 }
 
+# All Cohen's d on the same graph
+png("figures_same_graph_cohen_d/all_comparisons_cohen_d.png", width = 1600, height = 900, res = 150)
+plot_all_cohen_same_graph(Time, scb_results, global_max = global_max_d)
+dev.off()
+
 ###############################################################
-### 6. Summary statistics
+### 6. Export summary statistics PDF
 ###############################################################
-if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
-
-
-
-library(gridExtra)
-library(grid)
 
 summary_df <- data.frame(
   Comparison = names(scb_results),
-  p_raw = sapply(scb_results, function(x) round(x$p_value,4)),
-  p_Holm = round(pvals_holm,4),
-  p_BH = round(pvals_BH,4),
-  p_Bonf = round(pvals_Bonferroni,4),
-  z_alpha = sapply(scb_results, function(x) round(x$z_alpha,4)),
-  sup_obs = sapply(scb_results, function(x) round(x$sup_obs,4)),
-  d_mean = sapply(scb_results, function(x) round(x$d_mean,4))
+  p_raw = sapply(scb_results, function(x) round(x$p_value, 4)),
+  p_Holm = round(pvals_holm, 4),
+  p_BH = round(pvals_BH, 4),
+  p_Bonf = round(pvals_Bonferroni, 4),
+  z_alpha = sapply(scb_results, function(x) round(x$z_alpha, 4)),
+  sup_obs = sapply(scb_results, function(x) round(x$sup_obs, 4)),
+  d_mean = sapply(scb_results, function(x) round(x$d_mean, 4))
 )
 
-if (!dir.exists("SCB_summary_stat")) dir.create("SCB_summary_stat")
-
-
-lines_per_page <- 15  
-n_pages <- ceiling(nrow(summary_df)/lines_per_page)
-
 pdf("SCB_summary_stat/SCB_summary_statistics.pdf", width = 14, height = 8)
-
+lines_per_page <- 15  
+n_pages <- ceiling(nrow(summary_df) / lines_per_page)
 for (i in 1:n_pages) {
   start_row <- (i-1)*lines_per_page + 1
   end_row <- min(i*lines_per_page, nrow(summary_df))
   grid.newpage()
   grid.table(summary_df[start_row:end_row, ], rows = NULL)
 }
-
 dev.off()
 
+```
+
+
+
+```{r}
+all_comparisons
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
