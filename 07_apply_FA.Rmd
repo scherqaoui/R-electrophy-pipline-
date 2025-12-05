@@ -88,11 +88,6 @@ dev.off()
 
 ```{r Fanova three phases}
 
-
-library(fda)
-library(gridExtra)
-library(grid)
-
 #-------------------------------------------------------------------------------
 # Helper function: evaluate fd objects on a given time grid
 #-------------------------------------------------------------------------------
