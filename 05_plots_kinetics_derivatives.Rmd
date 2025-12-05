@@ -47,6 +47,67 @@ for (i in seq_along(fd_groups)) {
 
 
 
+
+
+
+```{r zoom on last seconds}
+library(fields)
+
+for (i in seq_along(fd_groups)) {
+
+  file_name <- paste0("figures_1st_derivatives/1st_derivative_with_zoom_", legends[i], ".png")
+  png(file_name, width = 1600, height = 900, res = 150)
+
+  par(mfrow=c(1,2))
+
+  # --- Graph principal
+  plot(Time, all_1st_derivs[[i]], type="l",
+       col=colors[i], lwd=3, lty=lty[i],
+       ylim=c(ymin,ymax),
+       xlab="Time (sec)", ylab="(fEPSP % baseline)'",
+       main=paste("Full signal -", legends[i]))
+  abline(h=0, col="red")
+
+  # --- Zoom graph
+  zoom_start <- 2300
+  zoom_end <- 2400
+
+  idx <- which(Time >= zoom_start & Time <= zoom_end)
+
+  plot(Time[idx], all_1st_derivs[[i]][idx], type="l",
+       col=colors[i], lwd=3, lty=lty[i],
+       xlab="", ylab="",
+       main="Zoom (last seconds)")
+  abline(h=0, col="red")
+  grid()
+
+  dev.off()
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r acceleration }
 
 if (!dir.exists("figures_2nd_derivatives")) dir.create("figures_2nd_derivatives")
@@ -70,6 +131,20 @@ for (i in seq_along(fd_groups)) {
 }
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
