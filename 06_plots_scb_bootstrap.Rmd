@@ -49,38 +49,62 @@ specific_comp <- list(
   #--------- Developmental stages comparisons: (sex,genotype) fixed ---------
 
   # Males - HRM
-  c("Males HRM Juvenile",   "Males HRM Adolescent"),
-  c("Males HRM Juvenile",   "Males HRM Adult"),
-  c("Males HRM Juvenile",   "Males HRM Aged"),
-  c("Males HRM Adolescent", "Males HRM Adult"),
-  c("Males HRM Adolescent", "Males HRM Aged"),
-  c("Males HRM Adult",      "Males HRM Aged"),
+  #c("Males HRM Juvenile",   "Males HRM Adolescent"),
+  #c("Males HRM Juvenile",   "Males HRM Adult"),
+  #c("Males HRM Juvenile",   "Males HRM Aged"),
+  #c("Males HRM Adolescent", "Males HRM Adult"),
+  #c("Males HRM Adolescent", "Males HRM Aged"),
+  #c("Males HRM Adult",      "Males HRM Aged"),
 
   # Males - WT
-  c("Males WT Juvenile",    "Males WT Adolescent"),
-  c("Males WT Juvenile",    "Males WT Adult"),
-  c("Males WT Juvenile",    "Males WT Aged"),
-  c("Males WT Adolescent",  "Males WT Adult"),
-  c("Males WT Adolescent",  "Males WT Aged"),
-  c("Males WT Adult",       "Males WT Aged"),
+  #c("Males WT Juvenile",    "Males WT Adolescent"),
+  #c("Males WT Juvenile",    "Males WT Adult"),
+  #c("Males WT Juvenile",    "Males WT Aged"),
+  #c("Males WT Adolescent",  "Males WT Adult"),
+  #c("Males WT Adolescent",  "Males WT Aged"),
+  #c("Males WT Adult",       "Males WT Aged"),
   
 
   # Females - HRM
-  c("Females HRM Juvenile",    "Females HRM Adolescent"),
-  c("Females HRM Juvenile",    "Females HRM Adult"),
-  c("Females HRM Juvenile",    "Females HRM Aged"),
-  c("Females HRM Adolescent",  "Females HRM Adult"),
-  c("Females HRM Adolescent",  "Females HRM Aged"),
-  c("Females HRM Adult",       "Females HRM Aged"),
+  #c("Females HRM Juvenile",    "Females HRM Adolescent"),
+  #c("Females HRM Juvenile",    "Females HRM Adult"),
+  #c("Females HRM Juvenile",    "Females HRM Aged"),
+  #c("Females HRM Adolescent",  "Females HRM Adult"),
+  #c("Females HRM Adolescent",  "Females HRM Aged"),
+  #c("Females HRM Adult",       "Females HRM Aged"),
 
   # Females - WT
-  c("Females WT Juvenile",     "Females WT Adolescent"),
-  c("Females WT Juvenile",     "Females WT Adult"),
-  c("Females WT Juvenile",     "Females WT Aged"),
-  c("Females WT Adolescent",   "Females WT Adult"),
-  c("Females WT Adolescent",   "Females WT Aged"),
-  c("Females WT Adult",        "Females WT Aged")
+  #c("Females WT Juvenile",     "Females WT Adolescent"),
+  #c("Females WT Juvenile",     "Females WT Adult"),
+  #c("Females WT Juvenile",     "Females WT Aged"),
+  #c("Females WT Adolescent",   "Females WT Adult"),
+  #c("Females WT Adolescent",   "Females WT Aged"),
+  #c("Females WT Adult",        "Females WT Aged")
+  
+  #--------- Sexes comparaisons: (Age, genotype)fixed ---------
+  
+  #Juvenile
+  c("Males WT Juvenile", "Females WT Juvenile"),
+  c("Males HRM Juvenile", "Females HRM Juvenile"),
+  
+  #Adolescent
+  c("Males WT Adolescent", "Females WT Adolescent"),
+  c("Males HRM Adolescent", "Females HRM Adolescent"),
+  
+  #Adult
+  c("Males WT Adult", "Females WT Adult"),
+  c("Males HRM Adult", "Females HRM Adult"),
+  
+  #Age
+  c("Males WT Aged", "Females WT Aged"),
+  c("Males HRM Aged", "Females HRM Aged")
+  
+  
 )
+
+
+
+
 
 ###############################################################
 ### 2. Compute SCBs for selected comparisons
@@ -159,7 +183,7 @@ plot_scb <- function(Time, scb, title) {
   lines(Time, scb$lower, col = "blue", lty = 2)
   lines(Time, scb$upper, col = "blue", lty = 2)
   abline(h = 0, col = "red", lty = 2)
-
+  abline(v = c(360, 1740), col = c("black","black"), lty = 3)
   polygon(c(Time, rev(Time)),
           c(scb$lower, rev(scb$upper)),
           col = rgb(0.5, 0.5, 0, 0.3), border = NA)
@@ -182,6 +206,7 @@ plot_cohen_d <- function(Time, d_curve, title) {
        xlab = "Time (sec)", ylab = "Cohen's d(t)",
        main = paste("Cohen's |d(t)| -", title))
   abline(h = 0, col = "red", lty = 2)
+  abline(v = c(360, 1740), col = c("black","black"), lty = 3)
   abline(h = c(0.2, 0.5, 0.8), col = c("blue", "orange","green"), lty = 3)
   legend("topright",
          legend = c("d(t)", "0.2 small", "0.5 medium", "0.8 large"),
@@ -385,6 +410,7 @@ plot_scb_three_phases <- function(
   
   abline(h=0, col="red", lty=2)
   
+  
   legend("bottomright",
          legend=c(
            "Phase 1 (1–360s)",
@@ -458,7 +484,7 @@ plot_cohen_three_phases <- function(
   plot(Time1, abs(d1), type="n",
        ylim=c(0, ymax),
        xlim=c(min(Time1), max(Time3)),
-       xlab="Time (s)", ylab="|Cohen's d|",
+       xlab="Time (s)", ylab="|d(t)|",
        main=title)
 
   lines(Time1, abs(d1), col="blue", lwd=2)
