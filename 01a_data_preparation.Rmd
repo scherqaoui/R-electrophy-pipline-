@@ -25,7 +25,7 @@ data_juv <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx"
 data_ado <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "ado")
 data_adu <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "adu")
 data_age <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "age")
-
+data_win <- read_excel("C:/Users/bs/Desktop/R-electrophy-pipline-/all data.xlsx", sheet = "Ado WIN&cont V2")
 
 
 #Removes unused rows/columns
@@ -75,6 +75,7 @@ cleaned_data_juv <- clean_data(data_juv, 10, 2400, c(1:4,6,15,26:32,43,44), meth
 cleaned_data_ado <- clean_data(data_ado, 10, 2400, c(1:4,16,23,26,37), method = "linear")
 cleaned_data_adu <- clean_data(data_adu, 10, 2400, c(1:4,6,11,17,20,28,29,36,38,39,43), method = "linear")
 cleaned_data_age <- clean_data(data_age, 10, 2400, c(1:4,6,13:16,24,31), method = "linear")
+cleaned_data_win <- clean_data(data_win, 10, 2400, c(1:4,9,10,16,24,31,32,42,50,57), method = "linear")
 
 
 Time <- cleaned_data_juv$Time
@@ -83,7 +84,7 @@ matrix_juv <- as.matrix(cleaned_data_juv[, -1])
 matrix_ado <- as.matrix(cleaned_data_ado[, -1]) 
 matrix_adu <- as.matrix(cleaned_data_adu[, -1]) 
 matrix_age <- as.matrix(cleaned_data_age[, -1]) 
-
+matrix_win <- as.matrix(cleaned_data_win[, -1])
 
 
 #Splits each dataset into biologically meaningful subgroups
@@ -103,7 +104,12 @@ all_groups <- list(
   
   # Age
   malesWTage    = matrix_age[, 1:6],   malesHRMage   = matrix_age[, 7:13],
-  femalesWTage  = matrix_age[, 14:19],femalesHRMage  = matrix_age[, 20:25]
+  femalesWTage  = matrix_age[, 14:19],femalesHRMage  = matrix_age[, 20:25],
+  
+  #win
+  WT_males_Ado  = matrix_win[,1:8], NAIVE_males_Ado_C57 = matrix_win[, 9:15],
+  VEHICLE_males_Ado_C57 = matrix_win[, 16:21] , WIN = matrix_win[, 22:30], 
+  SR_WIN = matrix_win[,31:37] , HRM_males_Ado_paper_WIN = matrix_win[, 38:45]
   
 )
 
@@ -114,7 +120,8 @@ groups_names <- c(
   "Males WT Juvenile","Males HRM Juvenile","Females WT Juvenile","Females HRM Juvenile",         #Juvenile
   "Males WT Adolescent","Males HRM Adolescent","Females WT Adolescent","Females HRM Adolescent", #Adolescent
   "Males WT Adult","Males HRM Adult","Females WT Adult", "Females HRM Adult",                    #Adult
-  "Males WT Aged", "Males HRM Aged", "Females WT Aged", "Females HRM Aged"                           #Age
+  "Males WT Aged", "Males HRM Aged", "Females WT Aged", "Females HRM Aged",                      #aged
+  "WT_males_Ado", "NAIVE_males_Ado_C57", "VEHICLE_males_Ado_C57", "WIN", "SR_WIN", "HRM_males_Ado_paper_WIN"
   )
 
 
@@ -124,12 +131,14 @@ colors <- c(
    "#00427A","#00427A","#4F8FD3","#4F8FD3",   # Juvenile 
    "yellow3","yellow3","#DC5700","#DC5700",  # Adolescent 
    "green3","green3","#1F7F1F","#1F7F1F",     # Adult
-   "red2","red","purple","purple"            #Aged
+   "red2","red","purple","purple",            #Aged
+   
+   "black", "black", "black", "black", "black", "black"
   
 )   
 
 
-lty <- c(1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2)
+lty <- c(1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2, 1,1,1,1,1,1)
 
 
 
