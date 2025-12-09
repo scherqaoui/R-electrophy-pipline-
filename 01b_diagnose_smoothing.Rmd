@@ -130,7 +130,6 @@ summary_df
 
 
 
-
 boxplot(residual_errors, main="Residual Error per Group", las=2)
 
 boxplot(roughness, main="Roughness per Group", las=2)
