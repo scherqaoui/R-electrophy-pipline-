@@ -94,15 +94,15 @@ ylim_global_fb <- range(c(male_WT_mat,male_HRM_mat,female_WT_mat,female_HRM_mat 
 
 plot_fb <- function(mat, grid, title, ylim) {
 
-  fbplot(mat, method = "MBD", ylim = ylim)
+  fbplot(mat, method = "MBD", depth , color = "lightcyan1", outliercol = "red3", barcol = "steelblue1", fullout=TRUE, ylim = ylim)
 
   title(main = title, xlab = "Time (sec)", ylab = "fEPSP % baseline")
 
   legend("topright",
          legend = c("median curve","50% central region(non outliers)","bornes des non outlier (whiskers)", "outlier candidates"),
-         col    = c("black","magenta3","#0072B2", "red"),
+         col    = c("black","lightcyan1","steelblue1", "red3"),
          lwd    = c(2, 20, 2, 1),
-         lty    = c(1, 1,1,2),
+         lty    = c(1, 1, 1, 2),
          cex = 0.7, bty = "n")
 }
 
@@ -130,8 +130,13 @@ png("figures_fboxplot_genotypes_sex/fbplot_females_HRM.png", width=1400, height=
 plot_fb(female_HRM_mat, grid, "Functional Boxplot – Females HRM", ylim_global_fb)
 dev.off()
 
+
+
 ```
 
 
 
+
+
+Modified Band Depth (MBD): MBD is defined based on the number of times a given curve is completely contained within the range defined by two other curves from sample. Hence, MBD indicates how central the curve is. Higher the MBD value, more central the curve is. The sample curves are ordered in decreasing value of their MBD implying first curve to be the median curve and last curve as the outlier
 
