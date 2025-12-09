@@ -69,8 +69,6 @@ for (grp_name in names(groups_list)) {
   coeff_mat <- do.call(cbind, coeff_list)
   group_fd <- fd(coef = coeff_mat, basisobj = basis_fd)
   deriv_gp <- deriv.fd(group_fd)
-   
-  
   
   cov_fd <- var.fd(deriv_gp)
   grid <- seq(basis_fd$rangeval[1], basis_fd$rangeval[2], length.out = 500)
