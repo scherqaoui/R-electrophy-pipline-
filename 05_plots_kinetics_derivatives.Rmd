@@ -36,6 +36,7 @@ for (i in seq_along(fd_groups)) {
     ylim = c(ymin, ymax)   # <-- same scale
   )
   
+  
   abline(h = 0, col = "red", lty = 1)
   grid()
   
@@ -43,7 +44,11 @@ for (i in seq_along(fd_groups)) {
 }
 
 
+
+
 ```
+
+
 
 
 

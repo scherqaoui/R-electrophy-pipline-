@@ -24,5 +24,8 @@ for (i in seq_along(fd_groups)) {
   all_2nd_derivs[[i]] <- eval.fd(Time, deriv.fd(deriv_fd)) 
   
 }
+
+
+
 ```
 
