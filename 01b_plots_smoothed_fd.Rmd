@@ -90,7 +90,7 @@ cat("Nombre optimal de bases :", res_opt$nbasis.opt, "\n")
 
 
 
-```{r}
+```{r functional box plot}
 
 if (!dir.exists("figures_fboxplot_genotypes_sex")) dir.create("figures_fboxplot_genotypes_sex")
 
