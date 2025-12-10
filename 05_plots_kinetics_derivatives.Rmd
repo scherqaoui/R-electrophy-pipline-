@@ -56,8 +56,8 @@ for (i in seq_along(fd_groups)) {
 if (!dir.exists("matrices_cor")) dir.create("matrices_cor")
 
 groups_list <- list(
-  "females WT" = grep("^Females WT", names(fd_groups), value = TRUE),
-  "males WT"   = grep("^Males WT", names(fd_groups), value = TRUE)
+  "females " = grep("^Females", names(fd_groups), value = TRUE),
+  "males "   = grep("^Males", names(fd_groups), value = TRUE)
 )
 
 for (grp_name in names(groups_list)) {
@@ -112,143 +112,6 @@ for (grp_name in names(groups_list)) {
 
 
 
-```{r}
-
-library(fields)
-zoom_start <- 1741
-zoom_end   <- 2400
-
-# zoom index zone
-zoom_idx <- which(Time >= zoom_start & Time <= zoom_end)
-
-# Y-limits for zoom zone
-global_zoom_ymin <- min(sapply(all_1st_derivs, function(x) min(x[zoom_idx], na.rm = TRUE)))
-global_zoom_ymax <- max(sapply(all_1st_derivs, function(x) max(x[zoom_idx], na.rm = TRUE)))
-
-
-for (i in seq_along(fd_groups)) {
-  
-  file_name <- paste0("figures_1st_derivatives/1st_derivative_with_zoom_", legends[i], ".png")
-  png(file_name, width = 1600, height = 900, res = 150)
-  
-  par(mfrow = c(1, 2))
-  
-  #### --- 1) FULL GRAPH  ---
-  plot(
-    Time, all_1st_derivs[[i]], type = "l",
-    col = colors[i], lwd = 3, lty = lty[i],
-    ylim = c(ymin, ymax),   # <-- same scale for full signal
-    xlab = "Time (sec)", ylab = "Derivative",
-    main = paste("Full signal -", legends[i])
-  )
-  abline(h = 0, col = "red")
-  grid()
-  
-  #### --- 2) ZOOM GRAPH  ---
-  plot(
-    Time[zoom_idx], all_1st_derivs[[i]][zoom_idx], type = "l",
-    col = colors[i], lwd = 3, lty = lty[i],
-    ylim = c(global_zoom_ymin, global_zoom_ymax),   # <-- same scale for the zoom ones
-    xlab = "Time (sec)", ylab = "",
-    main = paste("Zoom", zoom_start, "-", zoom_end, "sec")
-  )
-  abline(h = 0, col = "red")
-  grid()
-  
-  dev.off()
-}
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r acceleration }
-
-if (!dir.exists("figures_2nd_derivatives")) dir.create("figures_2nd_derivatives")
-
-for (i in seq_along(fd_groups)) {
-  
-  file_name <- paste0("figures_2nd_derivatives/2nd_derivative_", legends[i], ".png")
-  png(file_name, width = 1400, height = 900, res = 150)
-  
-  plot(
-    Time, all_2nd_derivs[[i]], type = "l", col = colors[i], lwd = 3, lty = lty[i],
-    xlab = "Time (sec)", ylab = "(fEPSP % baseline)'' ",
-    main = paste("Second Derivative -", legends[i]),
-    ylim = c(ymin, ymax)   # <-- same scale
-  )
-  
-  abline(h = 0, col = "red", lty = 2)
-  grid()
-  
-  dev.off()
-}
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r phase_portrait_f'_vs_f''}
-
-
-if (!dir.exists("figures_phase_portraits")) dir.create("figures_phase_portraits")
-
-for (i in seq_along(fd_groups)) {
-
-  file_name <- paste0("figures_phase_portraits/phase_fprime_vs_fdoubleprime_", legends[i], ".png")
-  png(file_name, width = 1400, height = 900, res = 150)
-
-  dx  <- all_1st_derivs[[i]]   # velocity
-  ddx <- all_2nd_derivs[[i]]   # acceleration
-
-  plot(
-    dx, ddx, type = "l", lwd = 3, col = colors[i],
-    xlab = "Velocity (1st derivative)",
-    ylab = "Acceleration (2nd derivative)",
-    main = paste("Phase Portrait: f'(t) vs f''(t) -", legends[i])
-  )
-
-  abline(h = 0, v = 0, col = "red", lty = 2)
-  grid()
-  dev.off()
-}
-
-```
 
 
 
