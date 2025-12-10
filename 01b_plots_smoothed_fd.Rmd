@@ -65,60 +65,30 @@ for (i in 1:length(all_fd_groups)) {
 
 ```
 
-```{r}
 
+```{r nb optimum de bases}
 
+all_matrix <- do.call(cbind, all_groups)  # combine toutes les colonnes
+all_matrix <- t(all_matrix)   #transpose because fdataobj will get a Matrix of set cases with dimension (n x m), where n is the number of curves and m are the points observed in each curve.
+fdataobj <- fdata(all_matrix)
 
-if (!dir.exists("matrices_cov")) dir.create("matrices_cov")
-
-
-groups_list <- list(
-  "Males"     = grep("^Males", names(all_fd_groups), value = TRUE),
-  "Females"     = grep("^Females", names(all_fd_groups), value = TRUE)
+# Optimisation du nombre de B-splines
+res_opt <- optim.basis(
+  fdataobj= fdataobj,
+  type.CV = GCV.S,
+  W = NULL,
+  lambda = 0,
+  numbasis = floor(seq(ncol(fdataobj)/16, ncol(fdataobj)/2, len = 10)),
+  type.basis = "bspline",
+  par.CV = list(trim = 0, draw = TRUE),   # draw = TRUE pour visualiser GCV
+  verbose = TRUE
 )
 
-
-all_cov_matrices <- list()
-grid_list <- list()
-
-for (grp_name in names(groups_list)) {
-  group_fds <- all_fd_groups[groups_list[[grp_name]]]
-  basis_fd <- group_fds[[1]]$basis
-  coeff_list <- lapply(group_fds, function(fd) fd$coefs)
-  coeff_mat <- do.call(cbind, coeff_list)
-  group_fd <- fd(coef = coeff_mat, basisobj = basis_fd)
-  
-  cov_fd <- var.fd(group_fd)
-  grid <- seq(basis_fd$rangeval[1], basis_fd$rangeval[2], length.out = 500)
-  cov_matrix <- eval.bifd(grid, grid, cov_fd)
-  
-  all_cov_matrices[[grp_name]] <- cov_matrix
-  grid_list[[grp_name]] <- grid
-}
-
-
-global_min <- min(sapply(all_cov_matrices, min))
-global_max <- max(sapply(all_cov_matrices, max))
-
-
-
-for (grp_name in names(groups_list)) {
-  cov_matrix <- all_cov_matrices[[grp_name]]
-  grid <- grid_list[[grp_name]]
-  
-  png(filename = paste0("matrices_cov/cov_heatmap_", grp_name, ".png"),
-      width = 1200, height = 1000, res = 150)
-  
-  image(grid, grid, cov_matrix,
-        col = topo.colors(50),
-        zlim = c(global_min, global_max),   # <-- même échelle pour tous
-        xlab = "Time (s)", ylab = "Time (s)",
-        main = paste("Covariance fonctionnelle -", grp_name))
-  
-  dev.off()
-}
-
+cat("Nombre optimal de bases :", res_opt$nbasis.opt, "\n")
 ```
+
+
+
 
 
 
