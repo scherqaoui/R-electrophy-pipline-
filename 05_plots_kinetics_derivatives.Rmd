@@ -51,7 +51,7 @@ for (i in seq_along(fd_groups)) {
 
 
 
-```{r}
+```{r correlation of 1st derivative}
 
 if (!dir.exists("matrices_cor")) dir.create("matrices_cor")
 
