@@ -90,80 +90,61 @@ cat("Nombre optimal de bases :", res_opt$nbasis.opt, "\n")
 
 
 
+```{r}
+
+if (!dir.exists("figures_fboxplot_genotypes_sex")) dir.create("figures_fboxplot_genotypes_sex")
+
+subgroups <- list(
+  Males_WT    = "^Males WT", Males_HRM   = "^Males HRM",
+  Females_WT  = "^Females WT", Females_HRM = "^Females HRM"
+)
 
 
-```{r functional box genotype sex}
+build_mat <- function(pattern) {
+  idx <- grep(pattern, names(all_fd_groups))
+  do.call(cbind, lapply(all_fd_groups[idx], function(fd) eval.fd(grid, fd)))
+}
+
+mats <- lapply(subgroups, build_mat)
+
+ylim_global_fb <- range(unlist(mats))
 
 
-
-#-----Plot Functional boxplot for each group identified by sex and genotype-----
-
-male_WT_groups  <- grep("^Males WT",  names(all_fd_groups), value = TRUE)
-male_HRM_groups <- grep("^Males HRM", names(all_fd_groups), value = TRUE)
-female_WT_groups  <- grep("^Females WT",  names(all_fd_groups), value = TRUE)
-female_HRM_groups <- grep("^Females HRM", names(all_fd_groups), value = TRUE)
-
-male_WT_mat  <- do.call(cbind, lapply(all_fd_groups[male_WT_groups],  function(fd) eval.fd(grid, fd)))
-male_HRM_mat <- do.call(cbind, lapply(all_fd_groups[male_HRM_groups], function(fd) eval.fd(grid, fd)))
-female_WT_mat  <- do.call(cbind, lapply(all_fd_groups[female_WT_groups],  function(fd) eval.fd(grid, fd)))
-female_HRM_mat <- do.call(cbind, lapply(all_fd_groups[female_HRM_groups], function(fd) eval.fd(grid, fd)))
-
-
-ylim_global_fb <- range(c(male_WT_mat,male_HRM_mat,female_WT_mat,female_HRM_mat ))
+plot_fb <- function(mat, grid, filename, title, ylim) {
   
+  png(filename, width = 1500, height = 1000, res = 150)
 
-plot_fb <- function(mat, grid, title, ylim) {
+  fbplot(mat, method="MBD", color="lightcyan1", outliercol="red3",
+         barcol="steelblue1", fullout=TRUE,
+         ylim=ylim, xlab="", ylab="", main="", xaxt="n")
 
-  fbplot(mat, method = "MBD", color = "lightcyan1", outliercol = "red3", barcol = "steelblue1", fullout=TRUE,
-         ylim = ylim,
-         xlab = "", ylab = "", main = "",
-         xaxt = "n")
-  
   axis(2)
-  tick_pos  <- seq(1, length(grid), length.out = 7)      
-  tick_labs <- round(seq(min(grid), max(grid), length.out = 7)) 
-  axis(1, at = tick_pos, labels = tick_labs)
+  tick_pos  <- seq(1, length(grid), length.out=7)
+  tick_labs <- round(seq(min(grid), max(grid), length.out=7))
+  axis(1, at=tick_pos, labels=tick_labs)
 
-  
-  title(main = title, xlab = "Time (sec)", ylab = "fEPSP % baseline")
+  title(main=title, xlab="Time (sec)", ylab="fEPSP % baseline")
 
   legend("topright",
-         legend = c("median","50% central region","bornes", "outlier"),
-         col    = c("black","lightcyan1","steelblue1", "red3"),
-         lwd    = c(2, 20, 2, 1),
-         lty    = c(1, 1, 1, 2),
-         cex = 0.7, bty = "n")
+         legend=c("median","50% central region","bounds","outlier"),
+         col=c("black","lightcyan1","steelblue1","red3"),
+         lwd=c(2,20,2,1), lty=c(1,1,1,2),
+         cex=0.7, bty="n")
+
+  dev.off()
 }
 
 
-
-dir.create("figures_fboxplot_genotypes_sex", showWarnings = FALSE)
-
-# MALES WT
-png("figures_fboxplot_genotypes_sex/fbplot_males_WT.png", width=1400, height=900, res=150)
-plot_fb(male_WT_mat, grid, "Functional Boxplot – Males WT", ylim_global_fb)
-dev.off()
-
-# MALES HRM
-png("figures_fboxplot_genotypes_sex/fbplot_males_HRM.png", width=1400, height=900, res=150)
-plot_fb(male_HRM_mat, grid, "Functional Boxplot – Males HRM", ylim_global_fb)
-dev.off()
-
-# FEMALES WT
-png("figures_fboxplot_genotypes_sex/fbplot_females_WT.png", width=1400, height=900, res=150)
-plot_fb(female_WT_mat, grid, "Functional Boxplot – Females WT", ylim_global_fb)
-dev.off()
-
-# FEMALES HRM
-png("figures_fboxplot_genotypes_sex/fbplot_females_HRM.png", width=1400, height=900, res=150)
-plot_fb(female_HRM_mat, grid, "Functional Boxplot – Females HRM", ylim_global_fb)
-dev.off()
-
-
+for (sg in names(mats)) {
+  filename <- paste0("figures_fboxplot_genotypes_sex/fbplot_", tolower(sg), ".png")
+  
+  plot_fb(
+    mat  = mats[[sg]], grid = grid, filename = filename,
+    title = paste("Functional Boxplot —", sg), ylim  = ylim_global_fb
+  )
+}
 
 ```
-
-
 
 
 
