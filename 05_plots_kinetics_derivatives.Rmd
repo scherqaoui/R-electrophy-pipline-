@@ -50,64 +50,64 @@ for (i in seq_along(fd_groups)) {
 
 
 
-```{r}
-if (!dir.exists("matrices_cov")) dir.create("matrices_cov")
 
+```{r}
+
+if (!dir.exists("matrices_cor")) dir.create("matrices_cor")
 
 groups_list <- list(
-  "females" = grep("^Females", names(fd_groups), value = TRUE),
-  "males"   = grep("^Males", names(fd_groups), value = TRUE)
+  "females WT" = grep("^Females WT", names(fd_groups), value = TRUE),
+  "males WT"   = grep("^Males WT", names(fd_groups), value = TRUE)
 )
-
-all_cov_matrices <- list()
-grid_list <- list()
 
 for (grp_name in names(groups_list)) {
   group_fds <- fd_groups[groups_list[[grp_name]]]
   basis_fd <- group_fds[[1]]$basis
+  
   coeff_list <- lapply(group_fds, function(fd) fd$coefs)
   coeff_mat <- do.call(cbind, coeff_list)
+  
   group_fd <- fd(coef = coeff_mat, basisobj = basis_fd)
   deriv_gp <- deriv.fd(group_fd)
   
   cov_fd <- var.fd(deriv_gp)
   grid <- seq(basis_fd$rangeval[1], basis_fd$rangeval[2], length.out = 500)
+  
   cov_matrix <- eval.bifd(grid, grid, cov_fd)
+
+  # --- functional correlation ---
+  v <- diag(cov_matrix)
+  v[v == 0] <- 1e-10
+  corr_matrix <- cov_matrix / sqrt( outer(v, v) )
   
-  all_cov_matrices[[grp_name]] <- cov_matrix
-  grid_list[[grp_name]] <- grid
-}
-
-
-global_min <- min(sapply(all_cov_matrices, min))
-global_max <- max(sapply(all_cov_matrices, max))
-
-
-
-for (grp_name in names(groups_list)) {
-  cov_matrix <- all_cov_matrices[[grp_name]]
-  grid <- grid_list[[grp_name]]
   
-  png(filename = paste0("matrices_cov/cov_heatmap_", grp_name, ".png"),
-      width = 1200, height = 1000, res = 150)
+  png(filename = paste0("matrices_cor/corr_heatmap_", grp_name, ".png"),
+    width = 1200, height = 1000, res = 150)
+
   
-  image(grid, grid, cov_matrix,
-        col = topo.colors(50),
-        zlim = c(global_min, global_max),  
-        xlab = "Time (s)", ylab = "Time (s)",
-        main = paste("Covariance fonctionnelle -", grp_name))
+  layout(matrix(c(1,2), ncol = 2), widths = c(4,1))
+
+  par(mar = c(5,5,4,1))
+  image(grid, grid, corr_matrix,
+      col = topo.colors(50),
+      zlim = c(-1, 1),
+      xlab = "Time (s)", ylab = "Time (s)",
+      main = paste("Functional correlation -", grp_name))
+
   
+  par(mar = c(5,2,4,4))  # marges pour la légende
+  image(1, seq(-1, 1, length.out = 50), 
+      matrix(seq(-1, 1, length.out = 50), nrow = 1),
+      col = topo.colors(50),
+      axes = FALSE,
+      xlab = "", ylab = "")
+  axis(4, at = seq(-1, 1, by = 0.5), las = 1)  # axe y à droite
+
   dev.off()
+
 }
 
 ```
-
-
-
-
-
-
-
 
 
 
