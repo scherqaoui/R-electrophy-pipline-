@@ -122,9 +122,6 @@ for (grp_name in names(groups_list)) {
 
 
 
-
-
-
 ```{r functional box genotype sex}
 
 
@@ -147,12 +144,21 @@ ylim_global_fb <- range(c(male_WT_mat,male_HRM_mat,female_WT_mat,female_HRM_mat 
 
 plot_fb <- function(mat, grid, title, ylim) {
 
-  fbplot(mat, method = "MBD", color = "lightcyan1", outliercol = "red3", barcol = "steelblue1", fullout=TRUE, xlim= c(0:2400, ), ylim = ylim)
+  fbplot(mat, method = "MBD", color = "lightcyan1", outliercol = "red3", barcol = "steelblue1", fullout=TRUE,
+         ylim = ylim,
+         xlab = "", ylab = "", main = "",
+         xaxt = "n")
+  
+  axis(2)
+  tick_pos  <- seq(1, length(grid), length.out = 7)      
+  tick_labs <- round(seq(min(grid), max(grid), length.out = 7)) 
+  axis(1, at = tick_pos, labels = tick_labs)
 
+  
   title(main = title, xlab = "Time (sec)", ylab = "fEPSP % baseline")
 
   legend("topright",
-         legend = c("median curve","50% central region(non outliers)","bornes des non outlier (whiskers)", "outlier candidates"),
+         legend = c("median","50% central region","bornes", "outlier"),
          col    = c("black","lightcyan1","steelblue1", "red3"),
          lwd    = c(2, 20, 2, 1),
          lty    = c(1, 1, 1, 2),
