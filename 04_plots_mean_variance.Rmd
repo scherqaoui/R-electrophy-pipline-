@@ -4,106 +4,66 @@ output: html_document
 date: "2025-11-21"
 ---
 
-```{r mean curves}
+```{r mean var curves}
 
 rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
 
+grid <- seq(min(Time), max(Time), length.out = 500)
+
+subgroups <- list(
+  Males   = grep("^Males", groups_names),
+  Females = grep("^Females", groups_names),
+  WT      = grep(" WT ", groups_names),
+  HRM     = grep(" HRM ", groups_names)
+)
+
+```
+
+
+
+
+```{r mean curves}
 
 if (!dir.exists("figures_mu_curve")) dir.create("figures_mu_curve")
 
-png("figures_mu_curve/mean_function_curves.png",
-    width = 1500, height = 1000, res = 150)
-
-
-par(mar = c(5, 4, 4, 10))  
-grid <- seq(min(Time), max(Time), length.out = 500)
 ylim_mean <- range(unlist(mean_values_list))
 
+plot_mean_functions <- function(grid, mean_values, group_names, colors, lty, ylim, filename, main_title) {
+  png(filename, width = 1500, height = 1000, res = 150)
+  
+  par(mar = c(5, 4, 4, 10))  
 
-plot(grid, mean_values_list[[1]], type="n", ylim=ylim_mean,
-xlab="Time (sec)", ylab="fEPSP % of baseline", main="Mean function curve")
+  plot(grid, mean_values[[1]], type="n", ylim=ylim,
+       xlab="Time (sec)", ylab="fEPSP % of baseline",
+       main = main_title)
 
+  for (i in seq_along(mean_values)) {
+    lines(grid, mean_values[[i]], col=colors[i], lty=lty[i], lwd=2)
+  }
 
-for (i in seq_along(mean_values_list)) {
-lines(grid, mean_values_list[[i]], col=colors[i], lty=lty[i], lwd=2)
+  grid()
+  legend("topright", inset=c(-0.27,0), xpd=TRUE,
+         legend=group_names, col=colors, lty=lty, lwd=2, bty="n", cex=0.8)
+
+  dev.off()
 }
 
-grid()
-legend("topright", inset = c(-0.27, 0), xpd = TRUE, legend=groups_names, col=colors,lty=lty, lwd=2, bty="n", cex=0.8)
-
-dev.off()
-```
 
 
-
-
-```{r males mean curves}
-
-male_idx <- grep("^Males", groups_names)
-mean_values_m <- mean_values_list[male_idx]
-
-
-groups_m_names <- groups_names[male_idx]
-
-
-colors_m <- colors[male_idx]
-lty_m    <- lty[male_idx]
-
-png("figures_mu_curve/mean_function_curves_males.png",
-    width = 1500, height = 1000, res = 150)
-
-par(mar = c(5, 4, 4, 10))
-
-
-
-plot(grid, mean_values_m[[1]], type="n", ylim=ylim_mean,
-     xlab="Time (sec)", ylab="fEPSP % of baseline",
-     main="Mean function curve — Males")
-
-for (i in seq_along(mean_values_m)) {
-  lines(grid, mean_values_m[[i]], col=colors_m[i], lty=lty_m[i], lwd=2)
+for (sg in names(subgroups)) {
+  idx <- subgroups[[sg]]
+  
+  plot_mean_functions(
+    grid,
+    mean_values_list[idx],
+    groups_names[idx],
+    colors[idx],
+    lty[idx],
+    ylim_mean,
+    paste0("figures_mu_curve/mean_function_curves_", tolower(sg), ".png"),
+    paste("Mean function curve —", sg)
+  )
 }
-
-grid()
-legend("topright", inset=c(-0.27,0), xpd=TRUE,
-       legend=groups_m_names, col=colors_m, lty=lty_m, lwd=2, bty="n", cex=0.8)
-
-dev.off()
-
-```
-
-
-```{r females mean curves}
-
-female_idx <- grep("^Females", groups_names)
-mean_values_f <- mean_values_list[female_idx]
-
-
-groups_f_names <- groups_names[female_idx]
-
-
-colors_f <- colors[female_idx]
-lty_f    <- lty[female_idx]
-
-png("figures_mu_curve/mean_function_curves_females.png",
-    width = 1500, height = 1000, res = 150)
-
-par(mar = c(5, 4, 4, 10))
-
-
-plot(grid, mean_values_f[[1]], type="n", ylim=ylim_mean,
-     xlab="Time (sec)", ylab="fEPSP % of baseline",
-     main="Mean function curve — Females")
-
-for (i in seq_along(mean_values_f)) {
-  lines(grid, mean_values_f[[i]], col=colors_f[i], lty=lty_f[i], lwd=2)
-}
-
-grid()
-legend("topright", inset=c(-0.27,0), xpd=TRUE,
-       legend=groups_f_names, col=colors_f, lty=lty_f, lwd=2, bty="n", cex=0.8)
-
-dev.off()
 
 
 ```
@@ -111,122 +71,59 @@ dev.off()
 
 
 
-
-
-
-```{r WT mean curves}
-
-WT_idx <- grep(" WT ", groups_names)
-mean_values_WT <- mean_values_list[WT_idx]
-
-
-groups_WT_names <- groups_names[WT_idx]
-
-
-colors_WT <- colors[WT_idx]
-lty_WT    <- lty[WT_idx]
-
-png("figures_mu_curve/mean_function_curves_WT.png",
-    width = 1500, height = 1000, res = 150)
-
-par(mar = c(5, 4, 4, 10))
-
-
-plot(grid, mean_values_WT[[1]], type="n", ylim=ylim_mean,
-     xlab="Time (sec)", ylab="fEPSP % of baseline",
-     main="Mean function curve — WT")
-
-for (i in seq_along(mean_values_WT)) {
-  lines(grid, mean_values_WT[[i]], col=colors_WT[i], lty=lty_WT[i], lwd=2)
-}
-
-grid()
-legend("topright", inset=c(-0.27,0), xpd=TRUE,
-       legend=groups_WT_names, col=colors_WT, lty=lty_WT, lwd=2, bty="n", cex=0.8)
-
-dev.off()
-
-```
-
-
-```{r HRM mean curves}
-
-HRM_idx <- grep(" HRM ", groups_names)
-mean_values_HRM <- mean_values_list[HRM_idx]
-
-
-groups_HRM_names <- groups_names[HRM_idx]
-
-
-colors_HRM <- colors[HRM_idx]
-lty_HRM    <- lty[HRM_idx]
-
-png("figures_mu_curve/mean_function_curves_HRM.png",
-    width = 1500, height = 1000, res = 150)
-
-par(mar = c(5, 4, 4, 10))
-
-
-plot(grid, mean_values_HRM[[1]], type="n", ylim=ylim_mean,
-     xlab="Time (sec)", ylab="fEPSP % of baseline",
-     main="Mean function curve — HRM")
-
-for (i in seq_along(mean_values_HRM)) {
-  lines(grid, mean_values_HRM[[i]], col=colors_HRM[i], lty=lty_HRM[i], lwd=2)
-}
-
-grid()
-legend("topright", inset=c(-0.27,0), xpd=TRUE,
-       legend=groups_HRM_names, col=colors_HRM, lty=lty_HRM, lwd=2, bty="n", cex=0.8)
-
-dev.off()
-
-
-```
-
-
-
-
-
-
-
-
-```{r variance curves}
-
-
-rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
+```{r var curves}
 
 if (!dir.exists("figures_var_curve")) dir.create("figures_var_curve")
 
-png("figures_var_curve/var_function_curves.png",
-    width = 1500, height = 1000, res = 150)
 
-
-par(mar = c(5, 4, 4, 10))
-
-var_values_list_aligned <- lapply(var_values_list, function(x) {
-  approx(x = seq_along(x), y = x, xout = seq_len(length(grid)))$y
+var_values_list_aligned <- lapply(var_values_list, function(v) {
+  
+  approx(x = seq_along(v),        
+         y = v,                   
+         xout = seq(1, length(v), length.out = length(grid)))$y
 })
+
 
 ylim_var <- range(unlist(var_values_list_aligned), na.rm = TRUE)
 
-plot(grid, var_values_list_aligned[[1]], type="n", ylim=ylim_var,
-     xlab="Time (sec)", ylab="Variance", main="Variance function curve")
 
-for (i in seq_along(var_values_list_aligned)) {
-  lines(grid, var_values_list_aligned[[i]], col=colors[i],lty=lty[i], lwd=2)
+plot_function_curve <- function(grid, values_list, group_names, colors, lty, ylim,
+                                filename, main_title, ylab="Value") {
+  png(filename, width = 1500, height = 1000, res = 150)
+  par(mar = c(5, 4, 4, 10))  
+
+  plot(grid, values_list[[1]], type="n", ylim=ylim,
+       xlab="Time (sec)", ylab=ylab, main=main_title)
+
+  for (i in seq_along(values_list)) {
+    lines(grid, values_list[[i]], col=colors[i], lty=lty[i], lwd=2)
+  }
+
+  grid()
+  legend("topright", inset = c(-0.27,0), xpd = TRUE,
+         legend = group_names, col = colors, lty = lty, lwd = 2, bty = "n", cex = 0.8)
+
+  dev.off()
 }
 
-grid()
-legend("topright",inset = c(-0.27, 0), xpd = TRUE, legend=groups_names, col=colors,lty=lty, lwd=2, bty="n", cex=0.8)
 
-dev.off()
+for (sg in names(subgroups)) {
+  idx <- subgroups[[sg]]
+  
+  plot_function_curve(
+    grid,
+    var_values_list_aligned[idx],
+    groups_names[idx],
+    colors[idx],
+    lty[idx],
+    ylim = ylim_var,
+    filename = paste0("figures_var_curve/var_function_curves_", tolower(sg), ".png"),
+    main_title = paste("Variance function curve —", sg),
+    ylab = "Variance"
+  )
+}
 
 ```
-
-
-
-
 
 
 
