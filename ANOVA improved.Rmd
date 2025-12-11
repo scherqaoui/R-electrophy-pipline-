@@ -14,16 +14,12 @@ rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), qui
 
 
 
-# Improved 3-way functional ANOVA with Freedman-Lane permutations
-# Requirements: library(fda)
-# Usage: res <- fanova3_improved(fd_list, factorG, factorA, factorS, P = 2000, seed = 123)
-# Returns: list with stats, p-values (FL perm), perm distributions, effect fd objects, eta2, diagnostics
-
 fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed = NULL, verbose = TRUE) {
   if (!requireNamespace("fda", quietly = TRUE)) stop("Please install package 'fda'.")
   if (!is.null(seed)) set.seed(seed)
-  
+  #---------------------------------------------
   # ---- 1. checks & coefficient extraction ----
+  #---------------------------------------------
   stopifnot(length(fd_list) == length(factorG),
             length(factorG) == length(factorA),
             length(factorA) == length(factorS))
@@ -58,8 +54,9 @@ fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed 
   if (any(cell_tab == 0)) {
     if (verbose) message("Warning: some GxAxS cells are empty. Analyses will proceed but interpret higher-order interactions with caution.")
   }
-  
+  #----------------------------------
   # ---- 2. Build model matrices ----
+  #----------------------------------
   # Use names that are safe inside column names
   Gv <- G_all; Av <- A_all; Sv <- S_all
   # full formula
@@ -111,8 +108,9 @@ fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed 
     RSS <- sum(resid^2)
     list(coef = coef_mat, fitted = fitted, resid = resid, RSS = RSS, rank = qrX$rank)
   }
-  
+  #-------------------------------------------------------------------
   # ---- 3. Compute observed statistics using nested-RSS approach ----
+  #-------------------------------------------------------------------
   effects <- c("G","A","S","G:A","G:S","A:S","G:A:S")
   obs_stats <- data.frame(F = numeric(length(effects)), df = integer(length(effects)), SS = numeric(length(effects)), stringsAsFactors = FALSE)
   names(obs_stats$F) <- effects
@@ -140,8 +138,9 @@ fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed 
     }
     obs_stats[ef, ] <- c(F = Fval, df = df_eff, SS = SS_eff)
   }
-  
+  #--------------------------------------------------------------
   # ---- 4. Effect-size (eta2) computed in coefficient space ----
+  #--------------------------------------------------------------
   SST <- sum(scale(Y, center = TRUE, scale = FALSE)^2) # total sum squares
   eta2 <- sapply(effects, function(ef) {
     ss <- obs_stats[ef, "SS"]
@@ -149,8 +148,9 @@ fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed 
     ss / SST
   })
   names(eta2) <- effects
-  
+  #-----------------------------------------------------------------------------------------
   # ---- 5. Reconstruct functional effect estimates (in basis coef space -> fd objects) ----
+  #-----------------------------------------------------------------------------------------
   # We'll compute marginal means in coefficient space per level and then create fd objects
   # Extract basis from first fd
   basis_obj <- fd_list[[1]]$basis
@@ -211,8 +211,9 @@ fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed 
   })
   # For clarity for the user we'll return the raw coef arrays for interactions; user can reconstruct specific slices
   # (constructing nested fd objects for arrays is verbose; we return coef arrays plus main-effect fd objects)
-  
+  #----------------------------------------------------
   # ---- 6. Permutation (Freedman-Lane) per effect ----
+  #----------------------------------------------------
   if (verbose) message("Running Freedman-Lane permutations (P = ", P, ") — this can take time.")
   perm_dist <- matrix(NA, nrow = P, ncol = length(effects))
   colnames(perm_dist) <- effects
@@ -263,8 +264,9 @@ fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed 
     (1 + sum(perm_max >= Fobs, na.rm = TRUE)) / (P + 1)
   })
   names(pvals_maxT) <- effects
-  
+  #-----------------------------------
   # ---- 7. Build returned object ----
+  #-----------------------------------
   ret <- list(
     N = N,
     K = K,
