@@ -1,0 +1,430 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-12-11"
+---
+
+```{r }
+
+
+rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("01b_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("02_local_outlier_handling.Rmd", envir = globalenv(), quiet = TRUE)
+rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), quiet = TRUE)
+
+
+
+# Improved 3-way functional ANOVA with Freedman-Lane permutations
+# Requirements: library(fda)
+# Usage: res <- fanova3_improved(fd_list, factorG, factorA, factorS, P = 2000, seed = 123)
+# Returns: list with stats, p-values (FL perm), perm distributions, effect fd objects, eta2, diagnostics
+
+fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed = NULL, verbose = TRUE) {
+  if (!requireNamespace("fda", quietly = TRUE)) stop("Please install package 'fda'.")
+  if (!is.null(seed)) set.seed(seed)
+  
+  # ---- 1. checks & coefficient extraction ----
+  stopifnot(length(fd_list) == length(factorG),
+            length(factorG) == length(factorA),
+            length(factorA) == length(factorS))
+  
+  # Ensure factors
+  Gf <- factor(factorG)
+  Af <- factor(factorA)
+  Sf <- factor(factorS)
+  
+  # extract coefficient matrices; assume each element is an 'fd' from fda with $coefs matrix (K x n_i)
+  coefs_list <- lapply(fd_list, function(fdi) {
+    if (!inherits(fdi, "fd")) stop("Each element of fd_list must be an 'fd' object from fda.")
+    # coefs: K x nrep for that fd
+    fdi$coefs
+  })
+  ns <- sapply(coefs_list, ncol)
+  K  <- nrow(coefs_list[[1]])
+  N  <- sum(ns)
+  # Build N x K matrix (each row one replicate's coefficients)
+  coef_mat <- do.call(cbind, coefs_list)   # K x N
+  Y <- t(coef_mat)                         # N x K
+  
+  # Build full-length factor vectors (length N) repeating subjects by their replicates
+  G_all <- factor(rep(Gf, times = ns), levels = levels(Gf))
+  A_all <- factor(rep(Af, times = ns), levels = levels(Af))
+  S_all <- factor(rep(Sf, times = ns), levels = levels(Sf))
+  
+
+  
+  # Quick cell table check
+  cell_tab <- table(G_all, A_all, S_all)
+  if (any(cell_tab == 0)) {
+    if (verbose) message("Warning: some GxAxS cells are empty. Analyses will proceed but interpret higher-order interactions with caution.")
+  }
+  
+  # ---- 2. Build model matrices ----
+  # Use names that are safe inside column names
+  Gv <- G_all; Av <- A_all; Sv <- S_all
+  # full formula
+  df_for_mm <- data.frame(Gv = Gv, Av = Av, Sv = Sv)
+  X_full <- model.matrix(~ Gv * Av * Sv, data = df_for_mm)  # N x p_full
+  rank_full <- qr(X_full)$rank
+  dfE <- N - rank_full
+  
+  # Helper: get column selection for reduced model by effect token
+  # effect codes: "G","A","S","G:A","G:S","A:S","G:A:S"
+  tokens_for_effect <- function(effect) {
+    if (effect == "G") return(c("Gv"))
+    if (effect == "A") return(c("Av"))
+    if (effect == "S") return(c("Sv"))
+    if (effect == "G:A") return(c("Gv","Av"))
+    if (effect == "G:S") return(c("Gv","Sv"))
+    if (effect == "A:S") return(c("Av","Sv"))
+    if (effect == "G:A:S") return(c("Gv","Av","Sv"))
+    stop("Unknown effect token")
+  }
+  contains_all_tokens <- function(colname, tokens) {
+    # check that all tokens appear in the column name (order not important)
+    all(sapply(tokens, function(tk) grepl(tk, colname, fixed = TRUE)))
+  }
+  build_reduced_X <- function(effect) {
+    tokens <- tokens_for_effect(effect)
+  # Columns to remove: keep intercept always
+    cols_to_remove <- sapply(colnames(X_full), function(nm) {
+      if (nm == "(Intercept)") return(FALSE)
+    # For main effects: remove columns containing exactly that factor
+    # For interactions: remove columns containing all factor tokens
+      all(sapply(tokens, function(tk) grepl(tk, nm, fixed = TRUE))) &&
+        length(tokens) == length(unlist(strsplit(nm, ":")))
+    })
+    X_red <- X_full[, !cols_to_remove, drop = FALSE]
+    X_red
+  }
+
+  
+  # Helper to fit linear model in multivariate sense: returns fitted and RSS
+  fit_multivar <- function(X, Ymat) {
+    # Solve for B: p x K
+    XtX <- crossprod(X) # p x p
+    # Use QR solve for stability
+    qrX <- qr(X)
+    coef_mat <- qr.coef(qrX, Ymat) # p x K (if Ymat is matrix)
+    fitted <- X %*% coef_mat
+    resid <- Ymat - fitted
+    RSS <- sum(resid^2)
+    list(coef = coef_mat, fitted = fitted, resid = resid, RSS = RSS, rank = qrX$rank)
+  }
+  
+  # ---- 3. Compute observed statistics using nested-RSS approach ----
+  effects <- c("G","A","S","G:A","G:S","A:S","G:A:S")
+  obs_stats <- data.frame(F = numeric(length(effects)), df = integer(length(effects)), SS = numeric(length(effects)), stringsAsFactors = FALSE)
+  names(obs_stats$F) <- effects
+  names(obs_stats$df) <- effects
+  names(obs_stats$SS) <- effects
+  # Fit full
+  fit_full <- fit_multivar(X_full, Y)
+  RSS_full <- fit_full$RSS
+  rank_full <- fit_full$rank
+  dfE_full <- N - rank_full
+  MSE_full <- RSS_full / dfE_full
+  
+  for (ef in effects) {
+    X_red <- build_reduced_X(ef)
+    fit_red <- fit_multivar(X_red, Y)
+    RSS_red <- fit_red$RSS
+    # SS_effect = RSS_red - RSS_full
+    SS_eff <- RSS_red - RSS_full
+    df_eff <- fit_full$rank - fit_red$rank
+    # in edge case df_eff <=0, set NA
+    if (df_eff <= 0) {
+      Fval <- NA
+    } else {
+      Fval <- (SS_eff/df_eff) / MSE_full
+    }
+    obs_stats[ef, ] <- c(F = Fval, df = df_eff, SS = SS_eff)
+  }
+  
+  # ---- 4. Effect-size (eta2) computed in coefficient space ----
+  SST <- sum(scale(Y, center = TRUE, scale = FALSE)^2) # total sum squares
+  eta2 <- sapply(effects, function(ef) {
+    ss <- obs_stats[ef, "SS"]
+    if (is.na(ss)) return(NA)
+    ss / SST
+  })
+  names(eta2) <- effects
+  
+  # ---- 5. Reconstruct functional effect estimates (in basis coef space -> fd objects) ----
+  # We'll compute marginal means in coefficient space per level and then create fd objects
+  # Extract basis from first fd
+  basis_obj <- fd_list[[1]]$basis
+  # group-level means for G, A, S and interactions
+  # Compute subject-level group id vector (length N): use the original G_all etc
+  # group means for main effects: compute mean coef vector per level (in coef space)
+  coef_by_level <- function(factor_vec) {
+    levs <- levels(factor_vec)
+    res <- t(sapply(levs, function(l) colMeans(Y[factor_vec == l, , drop = FALSE])))
+    rownames(res) <- levs
+    # res: levels x K
+    res
+  }
+  muG_coefs <- coef_by_level(G_all)  # g x K
+  muA_coefs <- coef_by_level(A_all)  # a x K
+  muS_coefs <- coef_by_level(S_all)  # s x K
+  
+  # Two-way: compute cell means for each pair
+  make_cell_means <- function(vec1, vec2) {
+    lev1 <- levels(vec1); lev2 <- levels(vec2)
+    out_list <- array(NA, dim = c(length(lev1), length(lev2), K), dimnames = list(lev1, lev2, NULL))
+    for (i in seq_along(lev1)) for (j in seq_along(lev2)) {
+      sel <- which(vec1 == lev1[i] & vec2 == lev2[j])
+      if (length(sel) > 0) out_list[i,j,] <- colMeans(Y[sel, , drop = FALSE])
+      else out_list[i,j,] <- rep(NA, K)
+    }
+    out_list
+  }
+  muGA_coefs <- make_cell_means(G_all, A_all)  # g x a x K
+  muGS_coefs <- make_cell_means(G_all, S_all)  # g x s x K
+  muAS_coefs <- make_cell_means(A_all, S_all)  # a x s x K
+  
+  # Three-way means
+  levG <- levels(G_all); levA <- levels(A_all); levS <- levels(S_all)
+  muGAS_coefs <- array(NA, dim = c(length(levG), length(levA), length(levS), K),
+                       dimnames = list(levG, levA, levS, NULL))
+  for (i in seq_along(levG)) for (j in seq_along(levA)) for (k in seq_along(levS)) {
+    sel <- which(G_all == levG[i] & A_all == levA[j] & S_all == levS[k])
+    if (length(sel) > 0) muGAS_coefs[i,j,k,] <- colMeans(Y[sel, , drop = FALSE]) else muGAS_coefs[i,j,k,] <- rep(NA, K)
+  }
+  
+  # Convert coefficient vectors to fd objects for convenience
+  coefmat_to_fd <- function(mat) {
+    # mat: rows = levels, cols = K
+    fda::fd(t(mat), basis_obj)    # fd expects coefficient matrix K x n; we pass t(mat)
+  }
+  muG_fd   <- coefmat_to_fd(muG_coefs)
+  muA_fd   <- coefmat_to_fd(muA_coefs)
+  muS_fd   <- coefmat_to_fd(muS_coefs)
+  muGA_fd  <- NULL
+  muGS_fd  <- NULL
+  muAS_fd  <- NULL
+  muGAS_fd <- NULL
+  # two-way: convert each slice to fd via list
+  muGA_fd <- apply(muGA_coefs, 1, function(x) { # returns list of a rows each K
+    # x is a x K matrix transposed weird; handle by reconstructing
+    NULL
+  })
+  # For clarity for the user we'll return the raw coef arrays for interactions; user can reconstruct specific slices
+  # (constructing nested fd objects for arrays is verbose; we return coef arrays plus main-effect fd objects)
+  
+  # ---- 6. Permutation (Freedman-Lane) per effect ----
+  if (verbose) message("Running Freedman-Lane permutations (P = ", P, ") — this can take time.")
+  perm_dist <- matrix(NA, nrow = P, ncol = length(effects))
+  colnames(perm_dist) <- effects
+  
+  for (ei in seq_along(effects)) {
+    ef <- effects[ei]
+    if (verbose) message(" Permuting for effect: ", ef)
+    # reduced X for this effect
+    X_red <- build_reduced_X(ef)
+    fit_red <- fit_multivar(X_red, Y)
+    fitted_red <- fit_red$fitted
+    resid_red <- fit_red$resid    # N x K
+    # Freedman-Lane: permute residual rows and add to fitted_red, fit full model, compute F*
+    for (p in seq_len(P)) {
+      perm_idx <- sample.int(N)
+      Yp <- fitted_red + resid_red[perm_idx, , drop = FALSE]
+      # fit full model to Yp
+      fit_full_p <- fit_multivar(X_full, Yp)
+      RSS_full_p <- fit_full_p$RSS
+      # fit reduced to Yp (not strictly necessary but consistent)
+      fit_red_p <- fit_multivar(X_red, Yp)
+      RSS_red_p <- fit_red_p$RSS
+      SS_eff_p <- RSS_red_p - RSS_full_p
+      df_eff <- obs_stats[ef, "df"]
+      # recompute MSE from full permutation fit using dfE
+      MSE_p <- RSS_full_p / (N - fit_full_p$rank)
+      if (df_eff <= 0) {
+        Fp <- NA
+      } else {
+        Fp <- (SS_eff_p / df_eff) / MSE_p
+      }
+      perm_dist[p, ei] <- Fp
+    }
+  }
+  
+  # compute permutation p-values (two-sided is not meaningful for F; use >=)
+  pvals_FL <- sapply(effects, function(ef) {
+    Fobs <- obs_stats[ef, "F"]
+    perms <- perm_dist[, ef]
+    (1 + sum(perms >= Fobs, na.rm = TRUE)) / (P + 1)
+  })
+  names(pvals_FL) <- effects
+  
+  # Compute maxT-adjusted p-values across effects using the permuted maxima
+  perm_max <- apply(perm_dist, 1, max, na.rm = TRUE)
+  pvals_maxT <- sapply(effects, function(ef) {
+    Fobs <- obs_stats[ef, "F"]
+    (1 + sum(perm_max >= Fobs, na.rm = TRUE)) / (P + 1)
+  })
+  names(pvals_maxT) <- effects
+  
+  # ---- 7. Build returned object ----
+  ret <- list(
+    N = N,
+    K = K,
+    basis = basis_obj,
+    stats = obs_stats,
+    dfE = dfE_full,
+    MSE = MSE_full,
+    df = setNames(as.numeric(obs_stats$df), effects),
+    F = setNames(as.numeric(obs_stats$F), effects),
+    SS = setNames(as.numeric(obs_stats$SS), effects),
+    eta2 = eta2,
+    pvalue_FL = pvals_FL,
+    pvalue_maxT = pvals_maxT,
+    perm_dist = perm_dist,
+    perm_max = perm_max,
+    muG_fd = muG_fd,
+    muA_fd = muA_fd,
+    muS_fd = muS_fd,
+    muGA_coefs = muGA_coefs,
+    muGS_coefs = muGS_coefs,
+    muAS_coefs = muAS_coefs,
+    muGAS_coefs = muGAS_coefs,
+    cell_table = cell_tab,
+    X_full = X_full,
+    Y_coefs = Y,
+    call = match.call()
+  )
+  class(ret) <- "fanova3_improved"
+  if (verbose) message("Done.")
+  ret
+}
+
+```
+
+
+
+
+
+
+```{r}
+# Group-level labels
+group_names <- names(fd_groups)
+
+# Flatten fd_groups into one fd per curve
+fd_list_all <- unlist(lapply(fd_groups, function(fd) {
+  lapply(seq_len(ncol(fd$coefs)), function(i) {
+    # Create new fd with a single column of coefficients
+    fda::fd(matrix(fd$coefs[, i], ncol = 1), fd$basis, fd$fdnames)
+  })
+}), recursive = FALSE)
+
+length(fd_list_all)  # should be 135
+
+
+
+# Define the group factors corresponding to fd_groups order
+Genotype_vec <- c("WT","HRM","WT","HRM",
+                  "WT","HRM","WT","HRM",
+                  "WT","HRM","WT","HRM",
+                  "WT","HRM","WT","HRM")
+Age_vec      <- c("juv","juv","juv","juv",
+                  "ado","ado","ado","ado",
+                  "adu","adu","adu","adu",
+                  "age","age","age","age")
+Sex_vec      <- c("M","M","F","F",
+                  "M","M","F","F",
+                  "M","M","F","F",
+                  "M","M","F","F")
+
+# Expand factors to curve-level
+Genotype_all <- unlist(mapply(function(fd, g) rep(g, ncol(fd$coefs)),
+                              fd_list_all, Genotype_vec, SIMPLIFY = FALSE))
+Age_all      <- unlist(mapply(function(fd, a) rep(a, ncol(fd$coefs)),
+                              fd_list_all, Age_vec, SIMPLIFY = FALSE))
+Sex_all      <- unlist(mapply(function(fd, s) rep(s, ncol(fd$coefs)),
+                              fd_list_all, Sex_vec, SIMPLIFY = FALSE))
+
+# Check total length
+length(Genotype_all)  # should be 135
+length(Age_all)       # 135
+length(Sex_all)       # 135
+
+# Run the 3-way functional ANOVA
+res_impr <- fanova3_improved(fd_list_all, Genotype_all, Age_all, Sex_all, P=2000, seed=1234)
+
+
+# extract 
+fstats <- res_impr$F
+SS     <- res_impr$SS
+eta2   <- res_impr$eta2
+p_FL   <- res_impr$pvalue_FL
+pvals  <- res_impr$pvalue_maxT
+df     <- res_impr$df
+
+
+anova_table3 <- data.frame(
+  F_stat    = c(fstats["G"], fstats["A"], fstats["S"],
+                  fstats["G:A"], fstats["G:S"], fstats["A:S"],
+                  fstats["G:A:S"]),
+  
+  SS        = c(SS["G"], SS["A"],SS["S"],
+                  SS["G:A"], SS["G:S"], SS["A:S"],
+                  SS["G:A:S"]),
+  
+  DF        = c(df["G"], df["A"],df["S"],
+                  df["G:A"], df["G:S"], df["A:S"],
+                  df["G:A:S"]),
+  
+  p_maxT    = c(pvals["G"],  pvals["A"],  pvals["S"],
+                  pvals["G:A"], pvals["G:S"], pvals["A:S"],
+                  pvals["G:A:S"]),
+  
+  p_FL      = c(p_FL["G"],  p_FL["A"],  p_FL["S"],
+                  p_FL["G:A"], p_FL["G:S"], p_FL["A:S"],
+                  p_FL["G:A:S"]),
+  
+  eta2_effect = c(eta2["G"], eta2["A"], eta2["S"],
+                  eta2["G:A"], eta2["G:S"], eta2["A:S"],
+                  eta2["G:A:S"])
+)
+
+print(anova_table3)
+
+
+
+```
+
+
+```{r}
+
+summary_table <- data.frame(
+  #effects <- names(res_impr$F),
+  F = res_impr$F,
+  SS = res_impr$SS,
+  eta2 = res_impr$eta2,
+  DF  = res_impr$df,
+  p_FL = res_impr$pvalue_FL,
+  p_maxT = res_impr$pvalue_maxT
+)
+
+
+print(summary_table)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
