@@ -84,6 +84,165 @@ dev.off()
 
 
 
+```{r algorthmic stability}
+
+
+
+###############################################
+## FUNCTIONAL ANOVA ALGORITHMIC STABILITY (LOO)
+###############################################
+
+library(dplyr)
+
+fanova3_stability <- function(fd_groups, Genotype, Age, Sex, P = 2000) {
+  n <- length(fd_groups)
+
+  # Fit FANOVA on full dataset
+  full_res <- fanova3_FP(fd_groups, Genotype, Age, Sex, P = P)
+  full_F   <- full_res$stat
+  full_p   <- full_res$pvalue_maxT
+
+  # initialize lists
+  loo_F_list <- vector("list", n)
+  loo_p_list <- vector("list", n)
+
+  for (i in 1:n) {
+    cat("Running LOO ", i, "/", n, "\n")
+
+    # Remove subject i
+    fd_loo  <- fd_groups[-i]
+    G_loo   <- Genotype[-i]
+    A_loo   <- Age[-i]
+    S_loo   <- Sex[-i]
+
+    # Run FANOVA on n-1 sample
+    res_loo <- fanova3_FP(fd_loo, G_loo, A_loo, S_loo, P = P)
+
+    loo_F_list[[i]] <- res_loo$stat
+    loo_p_list[[i]] <- res_loo$pvalue_maxT
+  }
+
+  # Convert to data frame for analysis
+  factors <- c("FG", "FA", "FS", "FAG", "FGS", "FAS", "FGAS")
+
+  loo_F_df <- do.call(rbind, lapply(loo_F_list, function(x) unlist(x[factors])))
+  colnames(loo_F_df) <- factors
+
+  loo_p_df <- do.call(rbind, lapply(loo_p_list, function(x) unlist(x[paste0("pvalue_", factors)])))
+  colnames(loo_p_df) <- factors
+
+  ###############################
+  # Stability Metrics
+  ###############################
+
+  stability <- data.frame(
+    Factor = c("Genotype","Age","Sex","Genotype:Age","Genotype:Sex","Age:Sex","Genotype:Age:Sex"),
+
+    Full_F = unlist(full_F[factors]),
+    Mean_LOO_F = apply(loo_F_df, 2, mean),
+    SD_LOO_F   = apply(loo_F_df, 2, sd),
+    Max_Change = apply(abs(loo_F_df - matrix(rep(unlist(full_F[factors]), n),
+                                             nrow = n, byrow = TRUE)), 
+                       2, max),
+
+    Mean_Abs_Change = apply(abs(loo_F_df - matrix(rep(unlist(full_F[factors]), n),
+                                                  nrow = n, byrow = TRUE)), 
+                            2, mean)
+  )
+
+  return(list(
+    full_model = full_res,
+    loo_F = loo_F_df,
+    loo_p = loo_p_df,
+    stability = stability
+  ))
+}
+
+
+set.seed(1234)
+stab3 <- fanova3_stability(fd_groups, Genotype, Age, Sex, P = 2000)
+
+stab3$stability
+
+
+
+library(ggplot2)
+library(reshape2)
+
+looF_long <- melt(stab3$loo_F)
+colnames(looF_long) <- c("LOO_index", "Factor", "F_value")
+
+ggplot(looF_long, aes(LOO_index, F_value)) +
+  geom_line() +
+  geom_hline(data = data.frame(Factor = names(stab3$full_model$stat),
+                               Full_F = stab3$full_model$stat),
+             aes(yintercept = Full_F), color = "red", linetype = "dashed") +
+  facet_wrap(~ Factor, scales = "free_y") +
+  theme_bw() +
+  labs(title = "LOO Algorithmic Stability for 3-way FANOVA",
+       y = "F-statistic", x = "Left-out observation")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ```{r Fanova three phases}
