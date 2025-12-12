@@ -52,32 +52,55 @@ for (i in seq_along(all_groups)) {
   
   
   png(filename = file_name, width = 1200, height = 800, res = 150)
+
+  # Colors
+  point_col   <- "black"                         # points always black
+  whisker_col <- adjustcolor(colors[i], 0.9)     # whiskers in group color
   
+  # Plot mean points only (no lines)
   plot(grid, mean_curve,
-       type="o", col=colors[i], lwd=2,
+       type="p", pch=16, cex=0.9,
+       col=point_col,
        ylim = ylim_global,
-       xlab = "Time (sec)", ylab = "fEPSP (% baseline)",
+       xlab = "Time (sec)",
+       ylab = "fEPSP (% baseline)",
        main = groups_names[i])
   
-  # SEM ribbon
-  polygon(
-    c(grid, rev(grid)),
-    c(mean_curve + sem_curve, rev(mean_curve - sem_curve)),
-    col = adjustcolor(colors[i], alpha.f = 0.3),
-    border = NA
-  )
+  # Compute cap width automatically (small horizontal whisker caps)
+  cap_width <- diff(range(grid)) / 200
   
+  # ---- SEM whiskers (vertical) ----
+  segments(grid,
+           mean_curve - sem_curve,
+           grid,
+           mean_curve + sem_curve,
+           col = whisker_col,
+           lwd = 2)
   
+  # ---- SEM whisker caps ----
+  segments(grid - cap_width,
+           mean_curve - sem_curve,
+           grid + cap_width,
+           mean_curve - sem_curve,
+           col = whisker_col,
+           lwd = 2)
+  
+  segments(grid - cap_width,
+           mean_curve + sem_curve,
+           grid + cap_width,
+           mean_curve + sem_curve,
+           col = whisker_col,
+           lwd = 2)
+  
+  # Reference line at 150%
   abline(h = 150, col = "black", lty = 2, lwd = 2)
   
+  # Background grid
   grid()
   
-  
   dev.off()
+
 }
-
-
-
 ```
 
 
