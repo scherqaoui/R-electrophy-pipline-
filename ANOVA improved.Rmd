@@ -306,6 +306,77 @@ fanova3_improved <- function(fd_list, factorG, factorA, factorS, P = 2000, seed 
 
 
 
+
+```{r}
+ns <- sapply(fd_groups, function(fd) ncol(fd$coefs))   # number of curves per group
+sum(ns)  # should be 135
+
+
+Genotype_group <- c("WT","HRM","WT","HRM",
+                    "WT","HRM","WT","HRM",
+                    "WT","HRM","WT","HRM",
+                    "WT","HRM","WT","HRM")
+
+Age_group      <- c("juv","juv","juv","juv",
+                    "ado","ado","ado","ado",
+                    "adu","adu","adu","adu",
+                    "age","age","age","age")
+
+Sex_group      <- c("M","M","F","F",
+                    "M","M","F","F",
+                    "M","M","F","F",
+                    "M","M","F","F")
+Genotype_all <- rep(Genotype_group, times = ns)
+Age_all      <- rep(Age_group,      times = ns)
+Sex_all      <- rep(Sex_group,      times = ns)
+
+
+length(Genotype_all)  # = 135
+length(Age_all)       # = 135
+length(Sex_all)       # = 135
+
+
+sum(sapply(fd_groups, function(fd) ncol(fd$coefs)))
+
+fanova_result <- fanova3_improved(
+    fd_list = fd_groups,
+    factorG = Genotype_all,
+    factorA = Age_all,
+    factorS = Sex_all,
+    P = 2000,
+    seed = 123,
+    verbose = TRUE
+)
+
+
+fanova_result$F
+fanova_result$pvalue_FL
+fanova_result$pvalue_maxT
+
+fanova_result$eta2
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r}
 # Group-level labels
 group_names <- names(fd_groups)
