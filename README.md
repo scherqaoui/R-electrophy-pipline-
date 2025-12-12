@@ -18,7 +18,19 @@
 A named list of the discrete curves for all groups: `all_groups`
 
 ---
+# Module 01a - plots raw data
 
+***What:** Compute mean & SEM raw data
+***Inputs:** `all_groups`
+**Steps:**
+-
+-
+-
+**Outputs:**
+
+
+
+---
 # Module 01b — Common Functional Smoothing
 
 **What:** Smooth all curves with *one* spline basis + *one* $\lambda$ + *one* common knots placement.  
@@ -31,7 +43,15 @@ A named list of the discrete curves for all groups: `all_groups`
 **Outputs:** `fd_list`, `basis`, `lambda_opt`, `breaks`, `gcv`
 
 A named list of smoothed fd curves for all groups: `all_fd_groups`
-
+---
+#Module 01b - Plots smoothed fd and functional box plots
+**What:** Plots
+**Inputs:** `all_fd_groups`...
+**Steps:** 
+-
+-
+-
+**Outputs:**
 ---
 
 # Module 02 — Local Outlier Detection and Imputation
@@ -45,10 +65,20 @@ A named list of smoothed fd curves for all groups: `all_fd_groups`
 **Outputs:** `fd, imputated_data, lambda, basis`
   
 A named list of cleaned fd curves for all groups: `all_cleaned_fd_groups`
+---
+#Module 02 - Plots local Outliers
+
+**What:** Plots Smoothed curves with supperposed smoothed curves with outlier treated locally (detection and correction with imputation)
+**Inputs:** `òriginal_fd`, `cleaned_fd`
+**Steps:** 
+-
+-
+-
+**Outputs:** ``
 
 ---
 
-# Module 02 — Global Outlier Detection
+# Module 03 — Global Outlier Detection
 
 **What:** Detect outlier curves among a group.  
 **Inputs:** `fd_group`, `Time`  
@@ -60,6 +90,16 @@ A named list of cleaned fd curves for all groups: `all_cleaned_fd_groups`
 **Outputs:** `outliers_final`
 
 A named list of detect outlier fd curves for all groups: `all_detected_fd_groups`
+---
+# Module 03 - Plots global outlier detection 
+
+**What:** Detect outlier curves and flagged
+**Inputs:** `fd_groups`, `Outlier__by_group`
+**Steps:**
+-
+-
+-
+**Outputs:** 
 
 
 ---
@@ -74,7 +114,17 @@ A named list of detect outlier fd curves for all groups: `all_detected_fd_groups
 - Variance = diag(covariance) -> smoothed  
 **Outputs:** `mean_values_list`, `var_values_list`
   `fd_groups`: fd list for each group, used for the inference(SCBs, Fanova, Kinetics)
-  
+---
+# Module 04 - Plots Mean and Variance curves 
+
+**What:** Plots mean curves by sex or by genotype, same for variance curves
+**Inputs:** `fd_groups`
+**Steps:**
+-
+-
+-
+**Outputs:**
+
 ---
 
 # Module 05 — Kinetic Derivatives
@@ -85,6 +135,16 @@ A named list of detect outlier fd curves for all groups: `all_detected_fd_groups
 - 1st derivative per group  
 - 2nd derivative per group  
 **Outputs:** list for `all_1st_derivs`, `all_2nd_derivs`
+---
+# Module 05 - Plots Kinetics: st derivative (Velocity)
+**What:** Plots 1st derivative , also correlation matrix for the derivative 
+**Inputs:**
+**Steps:**
+-
+-
+-
+**Outputs:**
+
 ---
 
 # Module 06 — SCB Bootstrap (Amplitude inference via bootstrap SCB)
