@@ -31,19 +31,19 @@ specific_comp <- list(
   
   #Juvenile
   c("Males HRM Juvenile", "Males WT Juvenile"),
-  c("Females HRM Juvenile", "Females WT Juvenile")
+  c("Females HRM Juvenile", "Females WT Juvenile"),
   
   #Adolescent
-  #c("Males HRM Adolescent", "Males WT Adolescent"),
-  #c("Females HRM Adolescent", "Females WT Adolescent"),
+  c("Males HRM Adolescent", "Males WT Adolescent"),
+  c("Females HRM Adolescent", "Females WT Adolescent"),
   
   #Adult
-  #c("Males HRM Adult", "Males WT Adult"),
-  #c("Females HRM Adult", "Females WT Adult"),
+  c("Males HRM Adult", "Males WT Adult"),
+  c("Females HRM Adult", "Females WT Adult"),
   
   #Age
-  #c("Males HRM Aged", "Males WT Aged"),
-  #c("Females HRM Aged", "Females WT Aged"),
+  c("Males HRM Aged", "Males WT Aged"),
+  c("Females HRM Aged", "Females WT Aged"),
   
 
   
@@ -51,37 +51,37 @@ specific_comp <- list(
   #--------- Developmental stages comparisons: (sex,genotype) fixed ---------
 
   # Males - HRM
-  #c("Males HRM Juvenile",   "Males HRM Adolescent"),
-  #c("Males HRM Juvenile",   "Males HRM Adult"),
-  #c("Males HRM Juvenile",   "Males HRM Aged"),
-  #c("Males HRM Adolescent", "Males HRM Adult"),
-  #c("Males HRM Adolescent", "Males HRM Aged"),
-  #c("Males HRM Adult",      "Males HRM Aged"),
+  c("Males HRM Juvenile",   "Males HRM Adolescent"),
+  c("Males HRM Juvenile",   "Males HRM Adult"),
+  c("Males HRM Juvenile",   "Males HRM Aged"),
+  c("Males HRM Adolescent", "Males HRM Adult"),
+  c("Males HRM Adolescent", "Males HRM Aged"),
+  c("Males HRM Adult",      "Males HRM Aged"),
 
   # Males - WT
-  #c("Males WT Juvenile",    "Males WT Adolescent"),
-  #c("Males WT Juvenile",    "Males WT Adult"),
-  #c("Males WT Juvenile",    "Males WT Aged"),
-  #c("Males WT Adolescent",  "Males WT Adult"),
-  #c("Males WT Adolescent",  "Males WT Aged"),
-  #c("Males WT Adult",       "Males WT Aged"),
+  c("Males WT Juvenile",    "Males WT Adolescent"),
+  c("Males WT Juvenile",    "Males WT Adult"),
+  c("Males WT Juvenile",    "Males WT Aged"),
+  c("Males WT Adolescent",  "Males WT Adult"),
+  c("Males WT Adolescent",  "Males WT Aged"),
+  c("Males WT Adult",       "Males WT Aged"),
   
 
   # Females - HRM
-  #c("Females HRM Juvenile",    "Females HRM Adolescent"),
-  #c("Females HRM Juvenile",    "Females HRM Adult"),
-  #c("Females HRM Juvenile",    "Females HRM Aged"),
-  #c("Females HRM Adolescent",  "Females HRM Adult"),
-  #c("Females HRM Adolescent",  "Females HRM Aged"),
-  #c("Females HRM Adult",       "Females HRM Aged"),
+  c("Females HRM Juvenile",    "Females HRM Adolescent"),
+  c("Females HRM Juvenile",    "Females HRM Adult"),
+  c("Females HRM Juvenile",    "Females HRM Aged"),
+  c("Females HRM Adolescent",  "Females HRM Adult"),
+  c("Females HRM Adolescent",  "Females HRM Aged"),
+  c("Females HRM Adult",       "Females HRM Aged"),
 
   # Females - WT
-  #c("Females WT Juvenile",     "Females WT Adolescent"),
-  #c("Females WT Juvenile",     "Females WT Adult"),
-  #c("Females WT Juvenile",     "Females WT Aged"),
-  #c("Females WT Adolescent",   "Females WT Adult"),
-  #c("Females WT Adolescent",   "Females WT Aged"),
-  #c("Females WT Adult",        "Females WT Aged")
+  c("Females WT Juvenile",     "Females WT Adolescent"),
+  c("Females WT Juvenile",     "Females WT Adult"),
+  c("Females WT Juvenile",     "Females WT Aged"),
+  c("Females WT Adolescent",   "Females WT Adult"),
+  c("Females WT Adolescent",   "Females WT Aged"),
+  c("Females WT Adult",        "Females WT Aged"),
   
   
   
@@ -89,20 +89,20 @@ specific_comp <- list(
   #--------- Sexes comparaisons: (Age, genotype)fixed ---------
   
   #Juvenile
-  #c("Males WT Juvenile", "Females WT Juvenile"),
-  #c("Males HRM Juvenile", "Females HRM Juvenile"),
+  c("Males WT Juvenile", "Females WT Juvenile"),
+  c("Males HRM Juvenile", "Females HRM Juvenile"),
   
   #Adolescent
-  #c("Males WT Adolescent", "Females WT Adolescent"),
-  #c("Males HRM Adolescent", "Females HRM Adolescent"),
+  c("Males WT Adolescent", "Females WT Adolescent"),
+  c("Males HRM Adolescent", "Females HRM Adolescent"),
   
   #Adult
-  #c("Males WT Adult", "Females WT Adult"),
-  #c("Males HRM Adult", "Females HRM Adult"),
+  c("Males WT Adult", "Females WT Adult"),
+  c("Males HRM Adult", "Females HRM Adult"),
   
   #Age
-  #c("Males WT Aged", "Females WT Aged"),
-  #c("Males HRM Aged", "Females HRM Aged")
+  c("Males WT Aged", "Females WT Aged"),
+  c("Males HRM Aged", "Females HRM Aged")
   
   
 )
