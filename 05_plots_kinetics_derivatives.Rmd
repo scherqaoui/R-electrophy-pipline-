@@ -56,8 +56,10 @@ for (i in seq_along(fd_groups)) {
 if (!dir.exists("matrices_cor")) dir.create("matrices_cor")
 
 groups_list <- list(
-  "females " = grep("^Females", names(fd_groups), value = TRUE),
-  "males "   = grep("^Males", names(fd_groups), value = TRUE)
+  "Females WT " = grep("^Females WT", names(fd_groups), value = TRUE),
+  "Males WT "   = grep("^Males WT", names(fd_groups), value = TRUE),
+  "Females HRM " = grep("^Females HRM", names(fd_groups), value = TRUE),
+  "Males HRM "   = grep("^Males HRM", names(fd_groups), value = TRUE)
 )
 
 for (grp_name in names(groups_list)) {
