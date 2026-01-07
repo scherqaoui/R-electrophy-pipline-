@@ -11,10 +11,10 @@ rmarkdown::render("04_mean_and_variance_functions.Rmd", envir = globalenv(), qui
 grid <- seq(min(Time), max(Time), length.out = 500)
 
 subgroups <- list(
-  Males   = grep("^Males", groups_names),
-  Females = grep("^Females", groups_names),
-  WT      = grep(" WT ", groups_names),
-  HRM     = grep(" HRM ", groups_names)
+  Females_WT   = grep("^Females WT", groups_names),
+  Males_WT = grep("^Males WT", groups_names),
+  Females_HRM      = grep("^Females HRM", groups_names),
+  Males_HRM     = grep("^Males HRM ", groups_names)
 )
 
 ```
