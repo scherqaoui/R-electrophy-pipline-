@@ -91,7 +91,6 @@ cat("Nombre optimal de bases :", res_opt$nbasis.opt, "\n")
 
 
 ```{r functional box plot}
-
 if (!dir.exists("figures_fboxplot_genotypes_sex")) dir.create("figures_fboxplot_genotypes_sex")
 
 subgroups <- list(
@@ -104,6 +103,8 @@ build_mat <- function(pattern) {
   idx <- grep(pattern, names(all_fd_groups))
   do.call(cbind, lapply(all_fd_groups[idx], function(fd) eval.fd(grid, fd)))
 }
+
+
 
 mats <- lapply(subgroups, build_mat)
 
@@ -143,8 +144,30 @@ for (sg in names(mats)) {
     title = paste("Functional Boxplot —", sg), ylim  = ylim_global_fb
   )
 }
-
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
