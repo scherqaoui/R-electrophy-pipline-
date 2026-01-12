@@ -113,6 +113,44 @@ for (sg in names(subgroups)) {
 
 
 
+```{r}
+
+
+early_idx <- Time >= 0 & Time <= 300
+
+
+velocity_metrics_early <- function(deriv, time, idx) {
+  
+  deriv_e <- deriv[idx]
+  time_e  <- time[idx]
+  
+  pos_idx <- deriv_e > 0
+  
+  data.frame(
+    peak_velocity_early     = max(deriv_e, na.rm = TRUE),
+    mean_positive_vel_early = mean(deriv_e[pos_idx], na.rm = TRUE)
+  )
+}
+
+
+
+velocity_table_early <- do.call(
+  rbind,
+  lapply(seq_along(all_1st_derivs), function(i) {
+    cbind(
+      Group = groups_names[i],
+      velocity_metrics_early(all_1st_derivs[[i]], Time, early_idx)
+    )
+  })
+)
+
+velocity_table_early[, -1] <- lapply(
+  velocity_table_early[, -1], as.numeric
+)
+
+velocity_table_early[, -1]
+
+```
 
 
 
