@@ -50,6 +50,76 @@ for (i in seq_along(fd_groups)) {
 
 
 
+```{r velocity by group}
+
+plot_1st_deriv <- function(mat, grid, filename, title, ylim,
+                           colors, lty, legends) {
+  
+  png(filename, width = 1500, height = 1000, res = 150)
+  
+  par(mar = c(5, 4, 4, 10)) 
+  plot(
+    grid, mat[[1]],type = "n",xlab = "Time (sec)",ylab = "(fEPSP % baseline)'",
+    main = title,ylim = ylim
+  )
+  
+  
+  for (i in seq_along(mat)) {
+    lines(grid, mat[[i]],col = colors[i],lwd = 3,lty = lty[i]
+    )
+  }
+  
+  abline(h = 0, col = "red", lty = 1)
+  grid()
+  
+  legend(
+    "topright",inset=c(-0.27,0),xpd=TRUE, legend = legends,col = colors,lty = lty,lwd = 3,cex = 0.8,bty = "n"
+  )
+  
+  dev.off()
+}
+
+subgroups <- list(
+  Males_WT     = "^Males WT",Males_HRM    = "^Males HRM",
+  Females_WT   = "^Females WT",Females_HRM  = "^Females HRM"
+)
+
+if (!dir.exists("figures_1st_derivatives_group")) {
+  dir.create("figures_1st_derivatives_group")
+}
+
+for (sg in names(subgroups)) {
+  
+  idx <- grep(subgroups[[sg]], groups_names)
+  
+  filename <- paste0(
+    "figures_1st_derivatives_group/1st_derivative_",
+    tolower(sg), ".png"
+  )
+  
+  plot_1st_deriv(
+    mat      = all_1st_derivs[idx],grid     = Time,
+    filename = filename,title    = paste("Mean First Derivative —", sg),
+    ylim     = c(ymin, ymax),colors   = colors[idx],lty      = lty[idx],
+    legends  = groups_names[idx]
+  )
+}
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r correlation of 1st derivative}
 
