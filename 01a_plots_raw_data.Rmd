@@ -4,10 +4,70 @@ output: html_document
 date: "2025-11-21"
 ---
 
+
+
+
+
 ```{r plots raw data}
 
-
 rmarkdown::render("01a_data_preparation.Rmd", envir = globalenv(), quiet = TRUE)
+
+
+plot_raw_curves <- function(all_groups, Time, title_gp, col,
+                            ylim_global = NULL) {
+  
+  mat <- as.matrix(all_groups)
+  
+  plot(
+  Time, mat[, 1],
+  type = "p", pch = 16, cex = 0.9,
+  col = col,
+  main = title_gp,
+  xlab = "Time (sec)",
+  ylab = "fEPSP % of baseline",
+  ylim = ylim_global
+)
+
+  
+  if (ncol(mat) > 1) {
+    for (i in 2:ncol(mat)) {
+      points(Time, mat[, i], col = col, pch = 16, cex = 0.9)
+    }
+  }
+}
+
+
+if (!dir.exists("figures_raw_curves")) dir.create("figures_raw_curves")
+
+ylim_global <- range(unlist(all_groups), na.rm = TRUE)
+
+for (i in seq_along(all_groups)) {
+  
+  png(filename = paste0("figures_raw_curves/", groups_names[i], ".png"),
+    width = 1200, height = 800, res = 150
+  )
+  
+  plot_raw_curves(
+    all_groups = all_groups[[i]],
+    Time = Time,
+    title_gp = groups_names[i],
+    col = colors[i],
+    ylim_global = ylim_global
+  )
+  
+  #abline(h = 150, col = "black", lwd = 2, lty = 2)
+  grid()
+  
+  dev.off()
+}
+
+```
+
+
+
+
+
+```{r plots mean and var}
 
 #Function to compute mean & SEM (raw data)
 
@@ -106,5 +166,87 @@ for (i in seq_along(all_groups)) {
 
 
 
+```{r boxplot}
+
+
+library(dplyr)
+library(tidyr)
+
+# Build long format with individual ID
+long_data <- lapply(names(all_groups), function(grp) {
+
+  mat <- all_groups[[grp]]
+
+  expand.grid(
+    time = Time,
+    individu = seq_len(ncol(mat))
+  ) %>%
+    mutate(
+      value = as.vector(mat),
+      group = grp
+    )
+}) %>%
+  bind_rows()
+
+# Boxplot: each animal summarized over time
+# since one animal is one observation, we can't see if one animal is an outlier among its group unlike in the 
+# functional boxplot where were can clearly see curves as outliers
+
+ggplot(long_data,
+       aes(x = group, y = value, group = individu)) +
+  geom_boxplot(aes(group = interaction(group, individu)),
+               outlier.shape = NA,
+               alpha = 0.3) +
+  stat_summary(
+    fun = median,
+    geom = "point",
+    size = 2,
+    color = "black"
+  ) +
+  theme_bw() +
+  labs(
+    y = "fEPSP (% baseline)",
+    x = "Group"
+  )
+
+
+# Boxplot: each group summarized over time
+#mean value over time for each animal
+
+summary_data <- long_data %>%
+  group_by(group, individu) %>%
+  summarise(
+    mean_value = mean(value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(summary_data,
+       aes(x = group, y = mean_value)) +
+  geom_boxplot(outlier.shape = NA, fill = "grey80") +
+  geom_jitter(width = 0.15, size = 2) +
+  theme_bw() +
+  labs(
+    y = "Mean fEPSP (% baseline)",
+    x = "Group"
+  )
+
+
+
+
+
+
+```
+
+
+
+
+
+
+```{r anova}
+
+
+
+
+```
 
 
