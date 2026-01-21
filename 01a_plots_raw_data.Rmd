@@ -166,84 +166,126 @@ for (i in seq_along(all_groups)) {
 
 
 
-```{r boxplot}
+
+
+```{r anova and boxplot}
 
 
 library(dplyr)
-library(tidyr)
+library(ggplot2)
+library(ggpubr)
+library(effectsize)
 
-# Build long format with individual ID
-long_data <- lapply(names(all_groups), function(grp) {
 
-  mat <- all_groups[[grp]]
+groups_names <- names(all_groups)
 
-  expand.grid(
-    time = Time,
-    individu = seq_len(ncol(mat))
+metadata <- data.frame(
+  animal   = character(),
+  genotype = character(),
+  sex      = character(),
+  age      = character(),
+  stringsAsFactors = FALSE
+)
+
+for (name in groups_names) {
+  
+  mat <- all_groups[[name]]
+  n_animals <- ncol(mat)
+  
+  genotype <- ifelse(grepl("WT", name), "WT", "HRM")
+  
+  sex <- ifelse(grepl("^males", name), "Male",
+                ifelse(grepl("^females", name), "Female", NA))
+  age      <- ifelse(grepl("juv", name), "Juvenile",
+                     ifelse(grepl("ado", name), "Adolescent",
+                            ifelse(grepl("adu", name), "Adult", "Age")))
+  
+  temp <- data.frame(
+    animal   = paste0(name, "_", seq_len(n_animals)),
+    genotype = genotype,
+    sex      = sex,
+    age      = age,
+    stringsAsFactors = FALSE
+  )
+  
+  metadata <- bind_rows(metadata, temp)
+}
+
+
+Time <- seq(
+  from = 0,
+  to   = 2400,                        
+  length.out = nrow(all_groups[[1]])
+)
+
+
+# 3. Compute mean fEPSP over last 10–15 minutes (per animal)
+
+last10_idx <- which(Time >= max(Time) - 925)  # ~15 min
+
+mean_values <- numeric()
+
+for (i in seq_along(all_groups)) {
+  mat <- all_groups[[i]]
+  means <- colMeans(mat[last10_idx, , drop = FALSE], na.rm = TRUE)
+  mean_values <- c(mean_values, means)
+}
+
+
+# 4. Combine metadata + mean values
+
+
+individual_means <- metadata
+individual_means$mean_value <- mean_values
+
+
+individual_means <- individual_means %>%
+  mutate(
+    genotype = factor(genotype, levels = c("WT", "HRM")),
+    sex      = factor(sex, levels = c("Male", "Female")),
+    age      = factor(age, levels = c("Juvenile", "Adolescent", "Adult", "Age"))
   ) %>%
-    mutate(
-      value = as.vector(mat),
-      group = grp
-    )
-}) %>%
-  bind_rows()
+  droplevels()
 
-# Boxplot: each animal summarized over time
-# since one animal is one observation, we can't see if one animal is an outlier among its group unlike in the 
-# functional boxplot where were can clearly see curves as outliers
 
-ggplot(long_data,
-       aes(x = group, y = value, group = individu)) +
-  geom_boxplot(aes(group = interaction(group, individu)),
-               outlier.shape = NA,
-               alpha = 0.3) +
-  stat_summary(
-    fun = median,
-    geom = "point",
-    size = 2,
-    color = "black"
+# 5. Sanity checks 
+
+
+print(table(individual_means$genotype))
+print(table(individual_means$sex))
+print(table(individual_means$age))
+
+
+# 6. Three-way ANOVA (biological unit = animal)
+
+anova_result <- aov(
+  mean_value ~ genotype + sex + age + sex * genotype + sex * age + age * genotype + sex * age * genotype,
+  data = individual_means
+)
+
+eta_squared(anova_result, partial = TRUE)
+summary(anova_result)
+
+
+
+# Optional post-hoc
+TukeyHSD(anova_result)
+
+ggboxplot(
+  individual_means,
+  x = "genotype",
+  y = "mean_value",
+  color = "sex",
+  palette = c("#0072B2", "#D55E00"),
+  add = "jitter"
+) +
+  facet_wrap(~ age) +
+  labs(
+    x = "Genotype",
+    y = "Mean fEPSP (% baseline, last 10–15 min)",
+    title = "LTP magnitude per animal"
   ) +
-  theme_bw() +
-  labs(
-    y = "fEPSP (% baseline)",
-    x = "Group"
-  )
-
-
-# Boxplot: each group summarized over time
-#mean value over time for each animal
-
-summary_data <- long_data %>%
-  group_by(group, individu) %>%
-  summarise(
-    mean_value = mean(value, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-ggplot(summary_data,
-       aes(x = group, y = mean_value)) +
-  geom_boxplot(outlier.shape = NA, fill = "grey80") +
-  geom_jitter(width = 0.15, size = 2) +
-  theme_bw() +
-  labs(
-    y = "Mean fEPSP (% baseline)",
-    x = "Group"
-  )
-
-
-
-
-
-
-```
-
-
-
-
-
-
-```{r anova}
-
+  theme_classic(base_size = 14)
 
 
 
