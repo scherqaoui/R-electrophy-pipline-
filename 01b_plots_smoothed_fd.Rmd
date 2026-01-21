@@ -68,7 +68,7 @@ for (i in 1:length(all_fd_groups)) {
 
 ```{r nb optimum de bases}
 
-all_matrix <- do.call(cbind, all_groups)  # combine toutes les colonnes
+all_matrix <- do.call(cbind, all_groups)  
 all_matrix <- t(all_matrix)   #transpose because fdataobj will get a Matrix of set cases with dimension (n x m), where n is the number of curves and m are the points observed in each curve.
 fdataobj <- fdata(all_matrix)
 
