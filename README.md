@@ -11,14 +11,22 @@
 **Steps:**  
 - Remove useless rows/columns, fix headers  
 - Convert to numeric, filter time 10–2400 s  
-- Interpolate NA (keep uniform time)  
-- Split by WT/HRM * M/F  
+- Interpolate NA (spline) (keep uniform time)  
+- Split by WT/HRM * M/F * Juv/Ado/Adu/Aged 
 **Outputs:** `Time`,`all_groups`, metadata (`groups_names`, `colors`, `lty`)
 
 A named list of the discrete curves for all groups: `all_groups`
 
 ---
 # Module 01a - plots raw data
+
+***What:** Compute raw curves by groups
+***Inputs:** ``
+**Steps:**
+-
+-
+-
+**Outputs:**
 
 ***What:** Compute mean & SEM raw data
 ***Inputs:** `all_groups`
@@ -27,7 +35,6 @@ A named list of the discrete curves for all groups: `all_groups`
 -
 -
 **Outputs:**
-
 
 
 ---
@@ -43,7 +50,9 @@ A named list of the discrete curves for all groups: `all_groups`
 **Outputs:** `fd_list`, `basis`, `lambda_opt`, `breaks`, `gcv`
 
 A named list of smoothed fd curves for all groups: `all_fd_groups`
+
 ---
+
 #Module 01b - Plots smoothed fd and functional box plots
 **What:** Plots smoothed curves 
 **Inputs:** `all_fd_groups`...
@@ -53,7 +62,8 @@ A named list of smoothed fd curves for all groups: `all_fd_groups`
 -
 **Outputs:**
 
-**What:** Plots fbboxplot
+
+**What:** Plots functional boxplot
 **Inputs:** ` `..
 **Steps:**
 -
