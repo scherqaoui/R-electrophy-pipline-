@@ -45,13 +45,24 @@ A named list of the discrete curves for all groups: `all_groups`
 A named list of smoothed fd curves for all groups: `all_fd_groups`
 ---
 #Module 01b - Plots smoothed fd and functional box plots
-**What:** Plots
+**What:** Plots smoothed curves 
 **Inputs:** `all_fd_groups`...
 **Steps:** 
 -
 -
 -
 **Outputs:**
+
+**What:** Plots fbboxplot
+**Inputs:** ` `..
+**Steps:**
+-
+-
+-
+**Outputs:**
+
+
+
 ---
 
 # Module 02 — Local Outlier Detection and Imputation
@@ -100,7 +111,6 @@ A named list of detect outlier fd curves for all groups: `all_detected_fd_groups
 -
 -
 **Outputs:** 
-
 
 ---
 
